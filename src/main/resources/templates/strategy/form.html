@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Strategy Form</title>
+</head>
+<body>
+<section>
+    <div class="container">
+        <h2>New Strategy</h2>
+        <form method="post" th:action="@{/strategies}" th:object="${strategyRequest}">
+            <div class="mb-3">
+                <label class="form-label" for="name">Name</label>
+                <input class="form-control" id="name" required th:field="*{name}" type="text">
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="description">Description</label>
+                <textarea class="form-control" id="description" required rows="5" th:field="*{description}"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="projectId">Project</label>
+                <input class="form-control" id="projectId" required th:field="*{projectId}" type="number">
+                <small>Enter a valid Project ID. A project selector can be implemented here.</small>
+            </div>
+            <button class="btn btn-primary" type="submit">Save</button>
+            <a class="btn btn-secondary" th:href="@{/strategies}">Cancel</a>
+        </form>
+    </div>
+</section>
+</body>
+</html>

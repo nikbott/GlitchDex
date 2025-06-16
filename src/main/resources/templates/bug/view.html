@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: layout(~{::title}, ~{::content})}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${'Bug #' + bug.id}">Bug Details</title>
+</head>
+<body>
+<div th:fragment="content">
+    <div class="container mt-4">
+        <h2 th:text="${bug.title}">Bug Title</h2>
+        <div class="card">
+            <div class="card-header">
+                <span th:text="${'Bug #' + bug.id}"></span> -
+                <span th:text="${'Reported by ' + bug.reporterName}"></span> on
+                <span th:text="${#temporals.format(bug.reportDate, 'yyyy-MM-dd HH:mm')}"></span>
+            </div>
+            <div class="card-body">
+                <p><strong>Status:</strong> <span th:text="${bug.status}"></span></p>
+                <p><strong>Severity:</strong> <span th:text="${bug.severity}"></span></p>
+                <p><strong>Priority:</strong> <span th:text="${bug.priority}"></span></p>
+
+                <hr>
+
+                <h5>Description</h5>
+                <p th:text="${bug.description}"></p>
+
+                <h5>Steps to Reproduce</h5>
+                <p th:text="${bug.stepsToReproduce}"></p>
+
+                <h5>Attachment</h5>
+                <div th:if="${bug.attachmentFilename}">
+                    <a th:href="@{/files/{filename}(filename=${bug.attachmentFilename})}"
+                       th:text="${bug.attachmentFilename}"></a>
+                </div>
+                <div th:unless="${bug.attachmentFilename}">
+                    <p>No attachment provided.</p>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a class="btn btn-primary" th:href="@{'/sessions/' + ${bug.testSessionId}}">Back to Test Session</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

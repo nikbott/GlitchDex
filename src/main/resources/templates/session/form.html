@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>New Test Session</title>
+</head>
+<body>
+<section>
+    <div class="container mt-4">
+        <h2>New Test Session for <span th:text="${projectName}">Project</span></h2>
+
+        <form method="post" th:action="@{/sessions}" th:object="${testSessionRequest}">
+
+            <input name="projectId" th:value="${projectId}" type="hidden"/>
+
+            <input th:field="*{status}" type="hidden" value="PLANNED"/>
+
+            <div class="mb-3">
+                <label class="form-label" for="strategyId">Test Strategy</label>
+                <select class="form-control" id="strategyId" required th:field="*{strategyId}">
+                    <option value="">Select a Strategy</option>
+                    <option th:each="strategy : ${strategies}"
+                            th:text="${strategy.name}"
+                            th:value="${strategy.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="durationInMinutes">Duration (in minutes)</label>
+                <input class="form-control" id="durationInMinutes" required th:field="*{durationInMinutes}"
+                       type="number">
+            </div>
+
+            <button class="btn btn-primary" type="submit">Create Session</button>
+            <a class="btn btn-secondary" th:href="@{/projects/{id}(id=${projectId})}">Cancel</a>
+        </form>
+    </div>
+</section>
+</body>
+</html>

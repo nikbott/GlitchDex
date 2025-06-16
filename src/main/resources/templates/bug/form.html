@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: layout(~{::title}, ~{::content})}" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Report Bug</title>
+</head>
+<body>
+<div th:fragment="content">
+    <div class="container mt-4">
+        <h2>Report a New Bug</h2>
+        <form enctype="multipart/form-data" method="post" th:action="@{/bugs/create}" th:object="${bugRequest}">
+            <input th:name="testSessionId" th:value="${testSessionId}" type="hidden"/>
+
+            <div class="mb-3">
+                <label class="form-label" for="title">Title</label>
+                <input class="form-control" id="title" required th:field="*{title}" type="text">
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="description">Description</label>
+                <textarea class="form-control" id="description" required rows="3" th:field="*{description}"></textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="stepsToReproduce">Steps to Reproduce</label>
+                <textarea class="form-control" id="stepsToReproduce" rows="3" th:field="*{stepsToReproduce}"></textarea>
+            </div>
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label" for="status">Status</label>
+                    <select class="form-select" id="status" required th:field="*{status}">
+                        <option th:each="s : ${T(br.ufscar.glitchdex.domain.BugStatus).values()}" th:text="${s.name()}"
+                                th:value="${s}"></option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label" for="severity">Severity</label>
+                    <select class="form-select" id="severity" required th:field="*{severity}">
+                        <option th:each="s : ${T(br.ufscar.glitchdex.domain.BugSeverity).values()}"
+                                th:text="${s.name()}"
+                                th:value="${s}"></option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label" for="priority">Priority</label>
+                    <select class="form-select" id="priority" required th:field="*{priority}">
+                        <option th:each="p : ${T(br.ufscar.glitchdex.domain.BugPriority).values()}"
+                                th:text="${p.name()}"
+                                th:value="${p}"></option>
+                    </select>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="attachment">Attachment (Optional)</label>
+                <input class="form-control" id="attachment" name="attachment" type="file">
+            </div>
+
+            <button class="btn btn-primary" type="submit">Submit Bug</button>
+            <a class="btn btn-secondary" th:href="@{'/sessions/' + ${testSessionId}}">Cancel</a>
+        </form>
+    </div>
+</div>
+</body>
+</html>

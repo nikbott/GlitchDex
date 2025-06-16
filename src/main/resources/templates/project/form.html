@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>New Project</title>
+</head>
+<body>
+<section>
+    <div class="container mt-4">
+        <h2>Create a New Project</h2>
+        <form method="post" th:action="@{/projects}" th:object="${projectRequest}">
+            <div class="mb-3">
+                <label class="form-label" for="name">Project Name</label>
+                <input class="form-control" id="name" required th:field="*{name}" type="text">
+                <div class="alert alert-warning" th:errors="*{name}" th:if="${#fields.hasErrors('name')}"></div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="description">Description</label>
+                <textarea class="form-control" id="description" required rows="3" th:field="*{description}"></textarea>
+                <div class="alert alert-warning" th:errors="*{description}"
+                     th:if="${#fields.hasErrors('description')}"></div>
+            </div>
+            <button class="btn btn-primary" type="submit">Create Project</button>
+            <a class="btn btn-secondary" th:href="@{/home}">Cancel</a>
+        </form>
+    </div>
+</section>
+</body>
+</html>

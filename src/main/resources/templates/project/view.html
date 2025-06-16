@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${project.name}">Project Details</title>
+</head>
+<body>
+<section>
+    <div class="container mt-4">
+        <h2 th:text="${project.name}">Project Name</h2>
+        <div class="card">
+            <div class="card-header">
+                Project Details
+            </div>
+            <div class="card-body">
+                <h5>Description</h5>
+                <p th:text="${project.description}"></p>
+                <hr>
+                <h5>Creation Date</h5>
+                <p th:text="${#temporals.format(project.creationDate, 'yyyy-MM-dd')}"></p>
+                <hr>
+                <h5>Test Sessions</h5>
+                <a class="btn btn-primary mb-3" href="#">New Test Session</a>
+                <table class="table table-striped" th:if="${!sessions.isEmpty()}">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Tester</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="session : ${sessions}">
+                        <td th:text="${session.id}"></td>
+                        <td th:text="${session.testerName}"></td>
+                        <td th:text="${session.status}"></td>
+                        <td th:text="${#temporals.format(session.sessionDate, 'yyyy-MM-dd')}"></td>
+                        <td>
+                            <a class="btn btn-primary mb-3" th:href="@{/sessions/new(projectId=${project.id})}">New Test
+                                Session</a></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div th:if="${sessions.isEmpty()}">
+                    <p>No test sessions found for this project.</p>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a class="btn btn-secondary" th:href="@{/home}">Back to Home</a>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: layout (~{ :: title}, ~{ :: section})}"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Testing Strategies</title>
+</head>
+<body>
+<section>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>All Testing Strategies</h2>
+            <a class="btn btn-primary" sec:authorize="hasAuthority('ADMIN')" th:href="@{/strategies/new}">New
+                Strategy</a>
+        </div>
+        <div class="row">
+            <div class.col-md-6 mb-4
+            " th:each="strategy : ${strategies}">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title" th:text="${strategy.name}">Strategy Name</h5>
+                    <p class="card-text" th:text="${strategy.description}">Strategy description.</p>
+                </div>
+            </div>
+        </div>
+        <div th:if="${strategies.isEmpty()}">
+            <p>No strategies found.</p>
+        </div>
+    </div>
+    </div>
+</section>
+</body>
+</html>

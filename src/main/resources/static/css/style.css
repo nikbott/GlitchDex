@@ -1,0 +1,9 @@
+/* Custom CSS for GlitchDex */
+body {
+    padding-top: 56px; /* Adjust for fixed navbar */
+}
+
+main {
+    padding-top: 1.5rem;
+    padding-bottom: 1.5rem;
+}

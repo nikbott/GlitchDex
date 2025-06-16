@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: layout (~{ :: title}, ~{ :: section})}"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Home</title>
+</head>
+<body>
+<section>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2>My Projects</h2>
+            <div class="dropdown">
+                <button aria-expanded="false" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
+                        id="sortDropdown" type="button">
+                    Sort By
+                </button>
+                <ul aria-labelledby="sortDropdown" class="dropdown-menu">
+                    <li><a class="dropdown-item" th:href="@{/home(sort='name', order='asc')}">Name (A-Z)</a></li>
+                    <li><a class="dropdown-item" th:href="@{/home(sort='name', order='desc')}">Name (Z-A)</a></li>
+                    <li><a class="dropdown-item" th:href="@{/home(sort='creationDate', order='desc')}">Newest First</a>
+                    </li>
+                    <li><a class="dropdown-item" th:href="@{/home(sort='creationDate', order='asc')}">Oldest First</a>
+                    </li>
+                </ul>
+            </div>
+            <a class="btn btn-primary" th:href="@{/projects/new}">New Project</a>
+        </div>
+        <div class="row">
+            <div class="col-md-4 mb-4" th:each="project : ${projects}">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${project.name}"></h5>
+                        <p class="card-text" th:text="${project.description}"></p>
+                        <a class="btn btn-secondary" th:href="@{/projects/{id}(id=${project.id})}">View
+                            Details</a>
+                    </div>
+                </div>
+            </div>
+            <div th:if="${projects.isEmpty()}">
+                <p>No projects found. <a th:href="@{/templates/project/new}">Create one now!</a></p>
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

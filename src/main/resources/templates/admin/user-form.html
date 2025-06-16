@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>User Form</title>
+</head>
+<body>
+<section>
+    <div class="container">
+        <h2 th:if="${user.id == null}">New User</h2>
+        <h2 th:unless="${user.id == null}">Edit User</h2>
+        <form method="post" th:action="@{/admin/users}" th:object="${user}">
+            <input th:field="*{id}" type="hidden"/>
+            <div class="mb-3">
+                <label class="form-label" for="name">Name</label>
+                <input class="form-control" id="name" required th:field="*{name}" type="text">
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="email">Email</label>
+                <input class="form-control" id="email" required th:field="*{email}" type="email">
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="password">Password</label>
+                <input class="form-control" id="password" th:field="*{password}" th:required="${user.id == null}"
+                       type="password">
+            </div>
+            <div class="mb-3">
+                <label class="form-label" for="role">Role</label>
+                <select class="form-select" id="role" required th:field="*{role}">
+                    <option th:each="role : ${T(br.ufscar.glitchdex.domain.Role).values()}"
+                            th:text="${role.name()}" th:value="${role}"></option>
+                </select>
+            </div>
+            <button class="btn btn-primary" type="submit">Save</button>
+            <a class="btn btn-secondary" th:href="@{/admin/users}">Cancel</a>
+        </form>
+    </div>
+</section>
+</body>
+</html>
