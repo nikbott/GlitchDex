@@ -16,8 +16,10 @@ public class BugRequest {
     private String title;
 
     @NotBlank
+    @Size(max = 2048)
     private String description;
 
+    @Size(max = 2048)
     private String stepsToReproduce;
 
     @NotNull

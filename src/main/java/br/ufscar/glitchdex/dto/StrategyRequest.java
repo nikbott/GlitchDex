@@ -1,7 +1,6 @@
 package br.ufscar.glitchdex.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -16,6 +15,9 @@ public class StrategyRequest {
     @Size(max = 1000)
     private String description;
 
-    @NotNull
-    private Long projectId;
+    @Size(max = 2000)
+    private String examples;
+
+    @Size(max = 2000)
+    private String tips;
 }

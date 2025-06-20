@@ -2,38 +2,38 @@
 <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>New Test Session</title>
+    <title th:text="#{session.form.title}">New Test Session</title>
 </head>
 <body>
 <section>
     <div class="container mt-4">
-        <h2>New Test Session for <span th:text="${projectName}">Project</span></h2>
-
-        <form method="post" th:action="@{/sessions}" th:object="${testSessionRequest}">
-
-            <input name="projectId" th:value="${projectId}" type="hidden"/>
-
-            <input th:field="*{status}" type="hidden" value="PLANNED"/>
-
+        <h2 th:text="|#{session.form.header} '${project.name}'|">New Test Session</h2>
+        <form method="post" th:action="@{/projects/{id}/sessions(id=${project.id})}" th:object="${testSessionRequest}">
             <div class="mb-3">
-                <label class="form-label" for="strategyId">Test Strategy</label>
-                <select class="form-control" id="strategyId" required th:field="*{strategyId}">
-                    <option value="">Select a Strategy</option>
-                    <option th:each="strategy : ${strategies}"
-                            th:text="${strategy.name}"
-                            th:value="${strategy.id}">
-                    </option>
+                <label class="form-label" for="strategy" th:text="#{session.form.strategy}">Test Strategy</label>
+                <select class="form-select" id="strategy" required th:field="*{strategyId}">
+                    <option th:text="#{session.form.select_strategy}" value="">Select a Strategy</option>
+                    <option th:each="strategy : ${strategies}" th:text="${strategy.name}"
+                            th:value="${strategy.id}"></option>
                 </select>
+                <div class="text-danger" th:errors="*{strategyId}" th:if="${#fields.hasErrors('strategyId')}"></div>
             </div>
-
             <div class="mb-3">
-                <label class="form-label" for="durationInMinutes">Duration (in minutes)</label>
-                <input class="form-control" id="durationInMinutes" required th:field="*{durationInMinutes}"
-                       type="number">
+                <label class="form-label" for="durationInMinutes" th:text="#{session.form.duration}">Duration (in
+                    minutes)</label>
+                <input class="form-control" id="durationInMinutes" min="1" required
+                       th:field="*{durationInMinutes}" type="number"/>
+                <div class="text-danger" th:errors="*{durationInMinutes}"
+                     th:if="${#fields.hasErrors('durationInMinutes')}"></div>
             </div>
-
-            <button class="btn btn-primary" type="submit">Create Session</button>
-            <a class="btn btn-secondary" th:href="@{/projects/{id}(id=${projectId})}">Cancel</a>
+            <div class="mb-3">
+                <label class="form-label" for="description" th:text="#{form.description}">Description</label>
+                <textarea class="form-control" id="description" rows="3" th:field="*{description}"></textarea>
+                <div class="text-danger" th:errors="*{description}" th:if="${#fields.hasErrors('description')}"></div>
+            </div>
+            <button class="btn btn-primary" th:text="#{session.form.create}" type="submit">Create Session</button>
+            <a class="btn btn-secondary" th:href="@{/projects/{id}(id=${project.id})}"
+               th:text="#{form.cancel}">Cancel</a>
         </form>
     </div>
 </section>

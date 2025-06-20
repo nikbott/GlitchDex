@@ -1,45 +1,46 @@
 <!DOCTYPE html>
-<html th:replace="~{fragments/layout :: layout(~{::title}, ~{::content})}" xmlns:th="http://www.thymeleaf.org">
+<html th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title th:text="${'Bug #' + bug.id}">Bug Details</title>
+    <title th:text="#{bug.view.title}">Bug Details</title>
 </head>
 <body>
-<div th:fragment="content">
+<section>
     <div class="container mt-4">
-        <h2 th:text="${bug.title}">Bug Title</h2>
+        <h2 th:text="|#{bug.view.bug_id}${bug.id}: ${bug.title}|">Bug Details</h2>
         <div class="card">
             <div class="card-header">
-                <span th:text="${'Bug #' + bug.id}"></span> -
-                <span th:text="${'Reported by ' + bug.reporterName}"></span> on
-                <span th:text="${#temporals.format(bug.reportDate, 'yyyy-MM-dd HH:mm')}"></span>
+                <span th:text="#{bug.view.reported_by}">Reported by</span>
+                <strong th:text="${bug.reporterName}"></strong>
+                <span th:text="#{bug.view.on}">on</span>
+                <span th:text="${#temporals.format(bug.reportDate, #messages.msg('datetime.format'))}"></span>
             </div>
             <div class="card-body">
-                <p><strong>Status:</strong> <span th:text="${bug.status}"></span></p>
-                <p><strong>Severity:</strong> <span th:text="${bug.severity}"></span></p>
-                <p><strong>Priority:</strong> <span th:text="${bug.priority}"></span></p>
-
-                <hr>
-
-                <h5>Description</h5>
-                <p th:text="${bug.description}"></p>
-
-                <h5>Steps to Reproduce</h5>
-                <p th:text="${bug.stepsToReproduce}"></p>
-
-                <h5>Attachment</h5>
+                <p>
+                    <strong th:text="#{bug.view.status}">Status:</strong> <span th:text="${bug.status.name()}"></span> |
+                    <strong th:text="#{bug.view.severity}">Severity:</strong> <span
+                        th:text="${bug.severity.name()}"></span> |
+                    <strong th:text="#{bug.view.priority}">Priority:</strong> <span
+                        th:text="${bug.priority.name()}"></span>
+                </p>
+                <h5 class="card-title" th:text="#{form.description}">Description</h5>
+                <p class="card-text" th:text="${bug.description}"></p>
+                <h5 class="card-title mt-4" th:text="#{bug.view.steps}">Steps to Reproduce</h5>
+                <p class="card-text" style="white-space: pre-wrap;" th:text="${bug.stepsToReproduce}"></p>
+                <h5 class="card-title mt-4" th:text="#{bug.view.attachment}">Attachment</h5>
                 <div th:if="${bug.attachmentFilename}">
-                    <a th:href="@{/files/{filename}(filename=${bug.attachmentFilename})}"
+                    <a target="_blank" th:href="@{/files/{filename}(filename=${bug.attachmentFilename})}"
                        th:text="${bug.attachmentFilename}"></a>
                 </div>
                 <div th:unless="${bug.attachmentFilename}">
-                    <p>No attachment provided.</p>
+                    <p th:text="#{bug.view.no_attachment}">No attachment provided.</p>
                 </div>
             </div>
-            <div class="card-footer">
-                <a class="btn btn-primary" th:href="@{'/sessions/' + ${bug.testSessionId}}">Back to Test Session</a>
-            </div>
         </div>
+        <a class="btn btn-secondary mt-3"
+           th:href="@{/projects/{projectId}/sessions/{id}(projectId=${session.projectId}, id=${bug.testSessionId})}"
+           th:text="#{bug.view.back_to_session}">Back to Test Session</a>
     </div>
-</div>
+</section>
 </body>
 </html>

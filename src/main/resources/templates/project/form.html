@@ -2,26 +2,41 @@
 <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>New Project</title>
+    <title th:text="${isEditMode} ? #{project.form.edit_header} : #{project.form.title}">Project Form</title>
 </head>
 <body>
 <section>
     <div class="container mt-4">
-        <h2>Create a New Project</h2>
-        <form method="post" th:action="@{/projects}" th:object="${projectRequest}">
+        <h2 th:text="${isEditMode} ? #{project.form.edit_header} : #{project.form.header}">Create a New Project</h2>
+        <form method="post"
+              th:action="${isEditMode} ? @{/projects/{id}(id=${projectId})} : @{/projects}"
+              th:object="${projectRequest}">
             <div class="mb-3">
-                <label class="form-label" for="name">Project Name</label>
-                <input class="form-control" id="name" required th:field="*{name}" type="text">
-                <div class="alert alert-warning" th:errors="*{name}" th:if="${#fields.hasErrors('name')}"></div>
+                <label class="form-label" for="name" th:text="#{project.form.name}">Project Name</label>
+                <input class="form-control" id="name" required th:field="*{name}" type="text"/>
             </div>
             <div class="mb-3">
-                <label class="form-label" for="description">Description</label>
-                <textarea class="form-control" id="description" required rows="3" th:field="*{description}"></textarea>
-                <div class="alert alert-warning" th:errors="*{description}"
-                     th:if="${#fields.hasErrors('description')}"></div>
+                <label class="form-label" for="description" th:text="#{form.description}">Description</label>
+                <textarea class="form-control" id="description" rows="3" th:field="*{description}"></textarea>
             </div>
-            <button class="btn btn-primary" type="submit">Create Project</button>
-            <a class="btn btn-secondary" th:href="@{/home}">Cancel</a>
+
+            <div class="mb-3">
+                <label class="form-label" for="members" th:text="#{project.form.members}">Members</label>
+                <select class="form-select" id="members" multiple="multiple" size="8" th:field="*{memberIds}">
+                    <option th:each="user : ${allUsers}"
+                            th:text="${user.name + ' (' + user.email + ')'}"
+                            th:value="${user.id}"></option>
+                </select>
+                <div class="form-text" th:text="#{project.form.members.help}">Hold down the Ctrl (windows) / Command
+                    (Mac) button to select multiple options.
+                </div>
+            </div>
+
+            <button class="btn btn-primary"
+                    th:text="${isEditMode} ? #{project.form.save_changes} : #{project.form.create}"
+                    type="submit">Submit
+            </button>
+            <a class="btn btn-secondary" th:href="@{/home}" th:text="#{form.cancel}">Cancel</a>
         </form>
     </div>
 </section>

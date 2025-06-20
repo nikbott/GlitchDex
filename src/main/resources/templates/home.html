@@ -1,45 +1,78 @@
 <!DOCTYPE html>
-<html th:replace="~{fragments/layout :: layout (~{ :: title}, ~{ :: section})}"
-      xmlns:th="http://www.thymeleaf.org">
+<html th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Home</title>
+    <title th:text="#{home.title}">Home</title>
 </head>
 <body>
 <section>
     <div class="container mt-4">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2>My Projects</h2>
-            <div class="dropdown">
-                <button aria-expanded="false" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown"
-                        id="sortDropdown" type="button">
-                    Sort By
-                </button>
-                <ul aria-labelledby="sortDropdown" class="dropdown-menu">
-                    <li><a class="dropdown-item" th:href="@{/home(sort='name', order='asc')}">Name (A-Z)</a></li>
-                    <li><a class="dropdown-item" th:href="@{/home(sort='name', order='desc')}">Name (Z-A)</a></li>
-                    <li><a class="dropdown-item" th:href="@{/home(sort='creationDate', order='desc')}">Newest First</a>
-                    </li>
-                    <li><a class="dropdown-item" th:href="@{/home(sort='creationDate', order='asc')}">Oldest First</a>
-                    </li>
-                </ul>
+        <h2 th:text="#{home.welcome}">Welcome to GlitchDex</h2>
+        <p th:text="#{home.description}">Your platform for managing software testing projects and bug tracking.</p>
+
+        <div sec:authorize="isAuthenticated()">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3 th:text="#{home.projects}">My Projects</h3>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown me-2">
+                        <button aria-expanded="false" class="btn btn-outline-secondary dropdown-toggle"
+                                data-bs-toggle="dropdown"
+                                id="sortDropdown" th:text="#{home.sort_by}" type="button">
+                            Sort By
+                        </button>
+                        <ul aria-labelledby="sortDropdown" class="dropdown-menu">
+                            <li><a class="dropdown-item" th:href="@{/home(sort='name', order='asc')}"
+                                   th:text="#{home.sort.name_asc}">Name (A-Z)</a></li>
+                            <li><a class="dropdown-item" th:href="@{/home(sort='name', order='desc')}"
+                                   th:text="#{home.sort.name_desc}">Name (Z-A)</a></li>
+                            <li><a class="dropdown-item" th:href="@{/home(sort='createdAt', order='desc')}"
+                                   th:text="#{home.sort.newest}">Newest First</a></li>
+                            <li><a class="dropdown-item" th:href="@{/home(sort='createdAt', order='asc')}"
+                                   th:text="#{home.sort.oldest}">Oldest First</a></li>
+                        </ul>
+                    </div>
+                    <a class="btn btn-primary" sec:authorize="hasAuthority('ADMIN')" th:href="@{/projects/new}"
+                       th:text="#{home.new_project}">New Project</a>
+                </div>
             </div>
-            <a class="btn btn-primary" th:href="@{/projects/new}">New Project</a>
-        </div>
-        <div class="row">
-            <div class="col-md-4 mb-4" th:each="project : ${projects}">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title" th:text="${project.name}"></h5>
-                        <p class="card-text" th:text="${project.description}"></p>
-                        <a class="btn btn-secondary" th:href="@{/projects/{id}(id=${project.id})}">View
-                            Details</a>
+
+            <div class="row">
+                <div class="col text-center py-5" th:if="${projects.isEmpty()}">
+                    <h4 th:text="#{home.no_projects}">No projects found.</h4>
+                    <p sec:authorize="hasAuthority('ADMIN')"><a th:href="@{/projects/new}" th:text="#{home.create_now}">Create
+                        one now!</a></p>
+                </div>
+                <div class="col-md-4 mb-4" th:each="project : ${projects}">
+                    <div class="card h-100">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title" th:text="${project.name}">Project Name</h5>
+                            <p class="card-text flex-grow-1" th:text="${project.description}">Project Description</p>
+                            <a class="btn btn-primary mt-auto" th:href="@{/projects/{id}(id=${project.id})}"
+                               th:text="#{home.view_details}">View Details</a>
+                        </div>
                     </div>
                 </div>
             </div>
-            <div th:if="${projects.isEmpty()}">
-                <p>No projects found. <a th:href="@{/templates/project/new}">Create one now!</a></p>
+        </div>
+
+        <div class="col-md-12 my-4 border-top pt-4">
+            <h3 th:text="#{home.more_options}">More Options</h3>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <h5 class="card-title" th:text="#{home.strategies_title}">Strategies</h5>
+                        <p class="card-text flex-grow-1" th:text="#{home.strategies_description}">Create, view, and
+                            manage testing strategies.</p>
+                        <a class="btn btn-secondary mt-auto" th:href="@{/strategies}"
+                           th:text="#{home.manage_strategies}">Manage Strategies</a>
+                    </div>
+                </div>
             </div>
         </div>
+
     </div>
 </section>
 </body>

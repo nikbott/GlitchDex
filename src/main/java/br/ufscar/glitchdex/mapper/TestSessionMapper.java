@@ -10,9 +10,12 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface TestSessionMapper {
 
+    @Mapping(source = "project.id", target = "projectId")
     @Mapping(source = "strategy.id", target = "strategyId")
     @Mapping(source = "tester.id", target = "testerId")
     @Mapping(source = "tester.name", target = "testerName")
+    @Mapping(source = "description", target = "description")
+    @Mapping(source = "status", target = "status")
     TestSessionDTO toTestSessionDTO(TestSession testSession);
 
     List<TestSessionDTO> toTestSessionDTOs(List<TestSession> testSessions);
