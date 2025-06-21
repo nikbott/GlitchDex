@@ -78,7 +78,7 @@ public interface TestSessionRepository extends JpaRepository<TestSession, Long> 
      * @return a list of test sessions for the project with the status
      */
     @EntityGraph(attributePaths = {"bugs", "tester", "project", "strategy"})
-    List<TestSession> findByProjectAndStatus(Project project, SessionStatus status);
+    List<TestSession> findByProjectIdAndStatus(Long project, SessionStatus status);
 
     /**
      * Finds a test session by its ID and the user who is the tester.
@@ -89,4 +89,6 @@ public interface TestSessionRepository extends JpaRepository<TestSession, Long> 
      */
     @EntityGraph(attributePaths = {"bugs", "tester", "project", "strategy"})
     Optional<TestSession> findByIdAndTester(Long id, User user);
+
+
 }

@@ -42,7 +42,6 @@
                 <label class="form-label" for="imageFile" th:text="#{form.image}">Image</label>
                 <input accept="image/*" class="form-control" id="imageFile" name="imageFile" type="file">
             </div>
-
             <div class="mb-3" th:if="${strategy != null and strategy.imageUrl != null}">
                 <p th:text="#{form.current_image}">Current Image:</p>
                 <picture>

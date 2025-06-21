@@ -99,4 +99,5 @@ public class Strategy {
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
     }
+
 }

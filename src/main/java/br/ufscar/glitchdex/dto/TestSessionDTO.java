@@ -15,4 +15,6 @@ public class TestSessionDTO {
     private String description;
     private SessionStatus status;
     private LocalDateTime createdAt;
+    private LocalDateTime startTimestamp;
+    private LocalDateTime finalizationTimestamp;
 }

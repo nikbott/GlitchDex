@@ -61,4 +61,6 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
      * @return a list of projects with names containing the search string
      */
     List<Project> findByNameContainingIgnoreCase(String name);
+
+    boolean existsByIdAndMembersContaining(Long projectId, User user);
 }

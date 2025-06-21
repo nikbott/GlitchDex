@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -223,5 +224,13 @@ public class ProjectService {
         log.info("Deleting project with id: {}", id);
         projectRepository.deleteById(id);
         log.info("Project with id {} deleted successfully", id);
+    }
+
+    public void verifyUserAssociation(Long userId, Long projectId) {
+        User user = getUserById(userId);  // busca o User da base
+        boolean isAssociated = projectRepository.existsByIdAndMembersContaining(projectId, user);
+        if (!isAssociated) {
+            throw new AccessDeniedException("Usuário não tem permissão para acessar este projeto.");
+        }
     }
 }

@@ -1,9 +1,12 @@
 package br.ufscar.glitchdex.controller.web;
 
-
 import br.ufscar.glitchdex.config.Constants;
+import br.ufscar.glitchdex.domain.TestSessionStateMachine;
+import br.ufscar.glitchdex.dto.TestSessionDTO;
 import br.ufscar.glitchdex.dto.TestSessionRequest;
 import br.ufscar.glitchdex.dto.UserDTO;
+import br.ufscar.glitchdex.domain.SessionStatus;
+import br.ufscar.glitchdex.exception.IllegalStatusChangeException;
 import br.ufscar.glitchdex.service.ProjectService;
 import br.ufscar.glitchdex.service.StrategyService;
 import br.ufscar.glitchdex.service.TestSessionService;
@@ -12,11 +15,15 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Controller
 @RequestMapping("/projects/{projectId}/sessions")
@@ -65,10 +72,74 @@ public class TestSessionViewController {
         return "redirect:/projects/" + projectId;
     }
 
+    @PostMapping("/{id}/start")
+    @PreAuthorize(Constants.HAS_ANY_AUTHORITY_ADMIN_TESTER)
+    public String startSession(@PathVariable Long projectId,
+                               @PathVariable Long id,
+                               @AuthenticationPrincipal UserDTO user,
+                               RedirectAttributes attr) {
+        var session = testSessionService.findByIdEntity(id);
+        testSessionService.verifyOwnership(session.getId(), user.getId());
+
+        try {
+            TestSessionStateMachine machine = new TestSessionStateMachine(session);
+            machine.startSession();
+            session.setStartTimestamp(LocalDateTime.now());
+            testSessionService.save(session);
+
+            attr.addFlashAttribute("success", "Sessão iniciada com sucesso.");
+        } catch (IllegalStatusChangeException e) {
+            attr.addFlashAttribute("error", "Não foi possível iniciar a sessão: " + e.getMessage());
+        }
+
+        return "redirect:/projects/" + projectId + "/sessions/" + id;
+    }
+
+    @PostMapping("/{id}/finish")
+    @PreAuthorize(Constants.HAS_ANY_AUTHORITY_ADMIN_TESTER)
+    public String finishSession(@PathVariable Long projectId,
+                                @PathVariable Long id,
+                                @AuthenticationPrincipal UserDTO user,
+                                RedirectAttributes attr) throws IllegalStatusChangeException {
+        testSessionService.verifyOwnership(id, user.getId());
+        testSessionService.updateFinish(id, LocalDateTime.now(), SessionStatus.FINALIZED);
+        attr.addFlashAttribute("success", "Sessão finalizada com sucesso.");
+        return "redirect:/projects/" + projectId + "/sessions/" + id;
+    }
+
+    @PostMapping("/{id}/update-description")
+    @PreAuthorize(Constants.HAS_ANY_AUTHORITY_ADMIN_TESTER)
+    public String updateDescription(@PathVariable Long projectId,
+                                    @PathVariable Long id,
+                                    @RequestParam String description,
+                                    @AuthenticationPrincipal UserDTO user,
+                                    RedirectAttributes attr) {
+        testSessionService.verifyOwnership(id, user.getId());
+        testSessionService.appendDescriptionIfInExecution(id, description);
+        attr.addFlashAttribute("success", "Descrição atualizada com sucesso.");
+        return "redirect:/projects/" + projectId + "/sessions/" + id;
+    }
+
+    @GetMapping
+    public String listSessions(@PathVariable Long projectId,
+                               @AuthenticationPrincipal UserDTO currentUser,
+                               Model model) {
+        log.info("Listando sessões do projeto {}", projectId);
+        projectService.verifyUserAssociation(currentUser.getId(), projectId);
+
+        List<TestSessionDTO> sessions = testSessionService.findByStrategyProject(projectId);
+        model.addAttribute("sessions", sessions);
+        model.addAttribute("projectId", projectId);
+        return "session/list";
+    }
+
     @GetMapping("/{id}")
     public String viewSession(@PathVariable Long projectId, @PathVariable Long id, Model model) {
         log.info("Request to view session with id: {} for project with id: {}", id, projectId);
-        model.addAttribute("session", testSessionService.findById(id));
+
+        testSessionService.updateExpiredSessionsByProject(projectId);
+
+        model.addAttribute("testSession", testSessionService.findById(id)); // ← Mudança aqui
         model.addAttribute("project", projectService.findById(projectId));
         return "session/view";
     }

@@ -57,8 +57,11 @@ public class ProjectViewController {
     public String viewProject(@PathVariable Long id, Model model) {
         log.info("Request to view project with id: {}", id);
         var project = projectService.findById(id);
+        testSessionService.updateExpiredSessionsByProject(id);
+
         model.addAttribute("project", project);
         model.addAttribute("sessions", testSessionService.findByProjectId(id));
+        model.addAttribute("projectId", id);
         return "project/view";
     }
 

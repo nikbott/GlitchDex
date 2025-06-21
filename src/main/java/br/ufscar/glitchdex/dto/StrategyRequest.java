@@ -20,4 +20,6 @@ public class StrategyRequest {
 
     @Size(max = 2000)
     private String tips;
+
+    private Long projectId;
 }
