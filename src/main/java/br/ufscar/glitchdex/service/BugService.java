@@ -19,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors; // Adicionado import para Collectors
 
 /**
  * Service class for managing bugs.
@@ -44,7 +45,9 @@ public class BugService {
      */
     public BugDTO findById(Long id) {
         log.info("Finding bug with id: {}", id);
-        Bug bug = bugRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Bug not found with id " + id));
+        // ALTERAÇÃO AQUI: Usar findByIdWithReporter para carregar o reporter junto
+        Bug bug = bugRepository.findByIdWithReporter(id) // <-- MUDANÇA PRINCIPAL
+                .orElseThrow(() -> new ResourceNotFoundException("Bug not found with id " + id));
         return bugMapper.toBugDTO(bug);
     }
 
@@ -54,10 +57,22 @@ public class BugService {
      * @param testSession The test session.
      * @return A list of BugDTOs.
      */
+    // Se este método também for exibir o nome do reporter, você precisaria de um
+    // método correspondente no BugRepository com JOIN FETCH.
+    // Por exemplo:
+    // @Query("SELECT b FROM Bug b JOIN FETCH b.reporter WHERE b.testSession.id = :testSessionId")
+    // List<Bug> findByTestSessionIdWithReporter(@Param("testSessionId") Long testSessionId);
+    // E então chamaria este método aqui:
+    // return bugRepository.findByTestSessionIdWithReporter(testSession.getId()).stream()
+    //         .map(bugMapper::toBugDTO)
+    //         .collect(Collectors.toList());
     public List<BugDTO> findByTestSession(TestSession testSession) {
         log.info("Finding bugs for test session with id: {}", testSession.getId());
-        return bugMapper.toBugDTOs(bugRepository.findByTestSession(testSession));
+        return bugRepository.findByTestSession(testSession).stream()
+                .map(bugMapper::toBugDTO)
+                .collect(Collectors.toList());
     }
+
 
     /**
      * Creates a new bug.
@@ -80,9 +95,16 @@ public class BugService {
         User reporter = userRepository.findById(reporterDto.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id " + reporterDto.getId()));
 
-        String attachmentFilename = fileStorageService.store(attachment);
+        String attachmentFilename = null;
+        if (attachment != null && !attachment.isEmpty()) {
+            attachmentFilename = fileStorageService.store(attachment);
+        }
 
         Bug bug = buildBugFromRequest(bugRequest, reporter, testSession, attachmentFilename);
+
+        // O @PrePersist em Bug.java já cuidará disso, então esta linha é redundante,
+        // mas não causa problemas se deixada. Removê-la pode simplificar.
+        // bug.setReportDate(LocalDateTime.now());
 
         Bug savedBug = bugRepository.save(bug);
         log.info("Bug with title '{}' created successfully with id {}", savedBug.getTitle(), savedBug.getId());
@@ -109,6 +131,7 @@ public class BugService {
         bug.setTestSession(session);
         bug.setReporter(reporter);
         bug.setAttachmentFilename(attachmentFilename);
+        // bug.setReportDate(LocalDateTime.now()); // Este é definido por @PrePersist na entidade Bug
         return bug;
     }
 
@@ -150,7 +173,11 @@ public class BugService {
         Bug bug = bugRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Bug not found with id: " + id));
 
-        fileStorageService.delete(bug.getAttachmentFilename());
+        // APERFEIÇOAMENTO: Apenas tentar deletar o arquivo se houver um nome de arquivo
+        if (bug.getAttachmentFilename() != null && !bug.getAttachmentFilename().isEmpty()) {
+            fileStorageService.delete(bug.getAttachmentFilename());
+        }
+
         Long testSessionId = bug.getTestSession().getId();
         bugRepository.deleteById(id);
         log.info("Bug with id {} deleted successfully", id);

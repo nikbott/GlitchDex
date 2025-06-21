@@ -13,14 +13,17 @@
             <div class="mb-3">
                 <label class="form-label" for="title" th:text="#{bug.form.bug_title}">Title</label>
                 <input class="form-control" id="title" required th:field="*{title}" type="text"/>
+                <span class="text-danger" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></span>
             </div>
             <div class="mb-3">
                 <label class="form-label" for="description" th:text="#{form.description}">Description</label>
                 <textarea class="form-control" id="description" rows="3" th:field="*{description}"></textarea>
+                <span class="text-danger" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></span>
             </div>
             <div class="mb-3">
                 <label class="form-label" for="stepsToReproduce" th:text="#{bug.form.steps}">Steps to Reproduce</label>
                 <textarea class="form-control" id="stepsToReproduce" rows="5" th:field="*{stepsToReproduce}"></textarea>
+                <span class="text-danger" th:if="${#fields.hasErrors('stepsToReproduce')}" th:errors="*{stepsToReproduce}"></span>
             </div>
             <div class="row">
                 <div class="col-md-4 mb-3">
@@ -29,6 +32,7 @@
                         <option th:each="s : ${T(br.ufscar.glitchdex.domain.BugStatus).values()}" th:text="${s.name()}"
                                 th:value="${s}"></option>
                     </select>
+                    <span class="text-danger" th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></span>
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label" for="severity" th:text="#{bug.form.severity}">Severity</label>
@@ -37,6 +41,7 @@
                                 th:text="${s.name()}"
                                 th:value="${s}"></option>
                     </select>
+                    <span class="text-danger" th:if="${#fields.hasErrors('severity')}" th:errors="*{severity}"></span>
                 </div>
                 <div class="col-md-4 mb-3">
                     <label class="form-label" for="priority" th:text="#{bug.form.priority}">Priority</label>
@@ -45,6 +50,7 @@
                                 th:text="${p.name()}"
                                 th:value="${p}"></option>
                     </select>
+                    <span class="text-danger" th:if="${#fields.hasErrors('priority')}" th:errors="*{priority}"></span>
                 </div>
             </div>
             <div class="mb-3">

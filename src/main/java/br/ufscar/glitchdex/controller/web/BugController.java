@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult; // Adicionado para lidar com erros de validação
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,11 +37,25 @@ public class BugController {
 
     @PostMapping
     public String createBug(@Valid @ModelAttribute("bugRequest") BugRequest bugRequest,
-                            @RequestParam("attachment") MultipartFile attachment,
+                            BindingResult result, // <-- ADICIONADO: Para capturar os resultados da validação
+                            @RequestParam(value = "attachment", required = false) MultipartFile attachment, // <-- ALTERADO: 'required = false' para tornar o anexo opcional
                             UserDTO user) throws IllegalStatusChangeException {
+
+        // <-- ADICIONADO: Bloco para verificar erros de validação
+        if (result.hasErrors()) {
+            log.warn("Validation errors occurred during bug creation for test session: {}", bugRequest.getTestSessionId());
+            // Se houver erros, retorna para o formulário para que as mensagens de erro sejam exibidas
+            // É importante adicionar o testSessionId de volta ao modelo para o link de 'Cancel' no formulário
+            // model.addAttribute("testSessionId", bugRequest.getTestSessionId()); // Pode ser necessário se o form.html precisar do testSessionId diretamente
+            return "bug/form";
+        }
+
         log.info("User {} is creating a new bug for test session: {}", user.getEmail(), bugRequest.getTestSessionId());
+        // Se a validação for bem-sucedida, prossegue com a criação do bug
         BugDTO createdBug = bugService.create(bugRequest, user, attachment);
         log.info("Bug created successfully with id: {}", createdBug.getId());
+
+        // Redireciona para a página de detalhes do bug recém-criado
         return "redirect:/bugs/" + createdBug.getId();
     }
 
