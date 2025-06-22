@@ -8,9 +8,14 @@
 <section>
     <div class="container text-center mt-5">
         <h1 class="display-1" th:text="#{error.something_wrong}">Something went wrong!</h1>
-        <p class="lead" th:text="${errorMessage ?: #{error.unexpected}}">
+
+        <p class="lead" th:if="${errorMessage}" th:text="${errorMessage}">
+            A specific error message.
+        </p>
+        <p class="lead" th:text="#{error.unexpected}" th:unless="${errorMessage}">
             We're sorry, but an unexpected error has occurred.
         </p>
+
         <a class="btn btn-primary" href="/" th:href="@{/home}" th:text="#{error.go_home}">Go to Homepage</a>
     </div>
 </section>

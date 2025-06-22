@@ -56,7 +56,7 @@ public class FileStorageService {
      * @throws StorageException if there is an issue storing the file.
      */
     public String store(MultipartFile file) {
-        if (file.isEmpty() || null == file.getOriginalFilename()) {
+        if (file.isEmpty() || file.getOriginalFilename() == null) {
             log.warn("Attempt to store an empty or unnamed file");
             return null;
         }
@@ -108,7 +108,7 @@ public class FileStorageService {
      * @param filename The name of the file to delete.
      */
     public void delete(String filename) {
-        if (null == filename || filename.isBlank()) {
+        if (filename == null || filename.isBlank()) {
             return;
         }
         log.info("Deleting file: {}", filename);
@@ -129,12 +129,12 @@ public class FileStorageService {
      * @return The unique filename of the new file.
      */
     public String replace(String oldFilename, MultipartFile newFile) {
-        if (null == newFile || newFile.isEmpty()) {
+        if (newFile == null || newFile.isEmpty()) {
             return oldFilename;
         }
         log.info("Replacing file {} with a new file", oldFilename);
         String newFilename = store(newFile);
-        if (null != newFilename) {
+        if (newFilename != null) {
             delete(oldFilename);
         }
         return newFilename;

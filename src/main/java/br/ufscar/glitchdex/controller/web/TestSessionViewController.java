@@ -1,12 +1,13 @@
 package br.ufscar.glitchdex.controller.web;
 
 import br.ufscar.glitchdex.config.Constants;
+import br.ufscar.glitchdex.domain.SessionStatus;
 import br.ufscar.glitchdex.domain.TestSessionStateMachine;
 import br.ufscar.glitchdex.dto.TestSessionDTO;
 import br.ufscar.glitchdex.dto.TestSessionRequest;
 import br.ufscar.glitchdex.dto.UserDTO;
-import br.ufscar.glitchdex.domain.SessionStatus;
 import br.ufscar.glitchdex.exception.IllegalStatusChangeException;
+import br.ufscar.glitchdex.mapper.TestSessionMapper;
 import br.ufscar.glitchdex.service.ProjectService;
 import br.ufscar.glitchdex.service.StrategyService;
 import br.ufscar.glitchdex.service.TestSessionService;
@@ -14,6 +15,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
@@ -34,6 +37,8 @@ public class TestSessionViewController {
     private final StrategyService strategyService;
     private final ProjectService projectService;
     private final TestSessionService testSessionService;
+    private final TestSessionMapper testSessionMapper;
+    private final MessageSource messageSource;
 
     @GetMapping("/new")
     public String showNewForm(@PathVariable Long projectId, Model model) {
@@ -72,6 +77,62 @@ public class TestSessionViewController {
         return "redirect:/projects/" + projectId;
     }
 
+    @GetMapping("/{id}/edit")
+    public String showEditForm(@PathVariable Long projectId, @PathVariable Long id, Model model) {
+        log.info("Request to show edit form for session with id: {}", id);
+        TestSessionDTO sessionDto = testSessionService.findById(id);
+        TestSessionRequest request = testSessionMapper.toTestSessionRequest(sessionDto);
+
+        model.addAttribute("testSessionRequest", request);
+        model.addAttribute("strategies", strategyService.findAll());
+        model.addAttribute("project", projectService.findById(projectId));
+        model.addAttribute("isEditMode", true);
+        model.addAttribute("sessionId", id);
+        return "session/form";
+    }
+
+    @PostMapping("/{id}/edit")
+    @PreAuthorize(Constants.HAS_ANY_AUTHORITY_ADMIN_TESTER)
+    public String updateTestSession(@PathVariable Long projectId,
+                                    @PathVariable Long id,
+                                    @Valid @ModelAttribute("testSessionRequest") TestSessionRequest request,
+                                    BindingResult result,
+                                    UserDTO currentUser,
+                                    Model model,
+                                    RedirectAttributes redirectAttributes) {
+        log.info("Request from user {} to update session with id: {}", currentUser.getEmail(), id);
+        if (result.hasErrors()) {
+            log.warn("Validation errors while updating session: {}", result.getAllErrors());
+            model.addAttribute("strategies", strategyService.findAll());
+            model.addAttribute("project", projectService.findById(projectId));
+            model.addAttribute("isEditMode", true);
+            model.addAttribute("sessionId", id);
+            return "session/form";
+        }
+
+        try {
+            testSessionService.update(id, request, currentUser);
+            redirectAttributes.addFlashAttribute("successMessage", messageSource.getMessage("session.form.success.update", null, LocaleContextHolder.getLocale()));
+        } catch (IllegalStatusChangeException e) {
+            log.warn("Illegal status change while updating session: {}", e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+
+        return "redirect:/projects/" + projectId + "/sessions/" + id;
+    }
+
+    @PostMapping("/{id}/delete")
+    @PreAuthorize(Constants.HAS_ANY_AUTHORITY_ADMIN_TESTER)
+    public String deleteSession(@PathVariable Long projectId,
+                                @PathVariable Long id,
+                                @AuthenticationPrincipal UserDTO user,
+                                RedirectAttributes redirectAttributes) {
+        testSessionService.verifyOwnership(id, user.getId());
+        testSessionService.delete(id);
+        redirectAttributes.addFlashAttribute("successMessage", messageSource.getMessage("session.form.success.delete", null, LocaleContextHolder.getLocale()));
+        return "redirect:/projects/" + projectId;
+    }
+
     @PostMapping("/{id}/start")
     @PreAuthorize(Constants.HAS_ANY_AUTHORITY_ADMIN_TESTER)
     public String startSession(@PathVariable Long projectId,
@@ -82,14 +143,14 @@ public class TestSessionViewController {
         testSessionService.verifyOwnership(session.getId(), user.getId());
 
         try {
-            TestSessionStateMachine machine = new TestSessionStateMachine(session);
+            TestSessionStateMachine machine = new TestSessionStateMachine(session, messageSource);
             machine.startSession();
             session.setStartTimestamp(LocalDateTime.now());
             testSessionService.save(session);
 
-            attr.addFlashAttribute("success", "Sessão iniciada com sucesso.");
+            attr.addFlashAttribute("success", messageSource.getMessage("session.form.success.start", null, LocaleContextHolder.getLocale()));
         } catch (IllegalStatusChangeException e) {
-            attr.addFlashAttribute("error", "Não foi possível iniciar a sessão: " + e.getMessage());
+            attr.addFlashAttribute("error", messageSource.getMessage("session.form.error.start", new Object[]{e.getMessage()}, LocaleContextHolder.getLocale()));
         }
 
         return "redirect:/projects/" + projectId + "/sessions/" + id;
@@ -103,7 +164,7 @@ public class TestSessionViewController {
                                 RedirectAttributes attr) throws IllegalStatusChangeException {
         testSessionService.verifyOwnership(id, user.getId());
         testSessionService.updateFinish(id, LocalDateTime.now(), SessionStatus.FINALIZED);
-        attr.addFlashAttribute("success", "Sessão finalizada com sucesso.");
+        attr.addFlashAttribute("success", messageSource.getMessage("session.form.success.finish", null, LocaleContextHolder.getLocale()));
         return "redirect:/projects/" + projectId + "/sessions/" + id;
     }
 
@@ -116,7 +177,7 @@ public class TestSessionViewController {
                                     RedirectAttributes attr) {
         testSessionService.verifyOwnership(id, user.getId());
         testSessionService.appendDescriptionIfInExecution(id, description);
-        attr.addFlashAttribute("success", "Descrição atualizada com sucesso.");
+        attr.addFlashAttribute("success", messageSource.getMessage("session.form.success.update_description", null, LocaleContextHolder.getLocale()));
         return "redirect:/projects/" + projectId + "/sessions/" + id;
     }
 

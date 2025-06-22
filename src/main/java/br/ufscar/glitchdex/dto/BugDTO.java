@@ -6,6 +6,7 @@ import br.ufscar.glitchdex.domain.BugStatus;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Data
 public class BugDTO {
@@ -13,7 +14,7 @@ public class BugDTO {
     private String title;
     private String description;
     private String stepsToReproduce;
-    private String attachmentFilename;
+    private Set<String> attachmentFilenames;
     private LocalDateTime reportDate;
     private BugStatus status;
     private BugSeverity severity;

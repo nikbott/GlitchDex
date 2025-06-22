@@ -13,6 +13,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +33,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
+    private final MessageSource messageSource;
 
     /**
      * Finds a user by their ID.
@@ -88,11 +91,11 @@ public class UserService {
         log.info("Creating user with email: {}", userRequest.getEmail());
         if (userRepository.existsByEmail(userRequest.getEmail())) {
             log.warn("Attempt to create user with existing email: {}", userRequest.getEmail());
-            throw new EmailAlreadyExistsException("Email already in use");
+            throw new EmailAlreadyExistsException(messageSource.getMessage("error.email.in_use", null, LocaleContextHolder.getLocale()));
         }
-        if (null == userRequest.getPassword() || userRequest.getPassword().isBlank()) {
+        if (userRequest.getPassword() == null || userRequest.getPassword().isBlank()) {
             log.warn("Attempt to create user with empty password");
-            throw new PasswordValidationException("Password is required for new users.");
+            throw new PasswordValidationException(messageSource.getMessage("error.password.required", null, LocaleContextHolder.getLocale()));
         }
         User user = userMapper.toUser(userRequest);
         user.setPassword(passwordEncoder.encode(userRequest.getPassword()));
@@ -114,19 +117,19 @@ public class UserService {
     public UserDTO update(Long id, UserRequest userRequest) {
         log.info("Updating user with id: {}", id);
         User existingUser = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.user.not_found", new Object[]{id}, LocaleContextHolder.getLocale())));
 
         if (!existingUser.getEmail().equals(userRequest.getEmail()) &&
                 userRepository.existsByEmail(userRequest.getEmail())) {
             log.warn("Attempt to update user with existing email: {}", userRequest.getEmail());
-            throw new EmailAlreadyExistsException("Email already in use");
+            throw new EmailAlreadyExistsException(messageSource.getMessage("error.email.in_use", null, LocaleContextHolder.getLocale()));
         }
 
         existingUser.setName(userRequest.getName());
         existingUser.setEmail(userRequest.getEmail());
         existingUser.setRole(userRequest.getRole());
 
-        if (null != userRequest.getPassword() && !userRequest.getPassword().isEmpty()) {
+        if (userRequest.getPassword() != null && !userRequest.getPassword().isEmpty()) {
             log.info("Updating password for user with id: {}", id);
             existingUser.setPassword(passwordEncoder.encode(userRequest.getPassword()));
         }
@@ -156,7 +159,7 @@ public class UserService {
      */
     @Transactional
     public UserDTO createAdminIfNotExists(String email, String password) {
-        if (0 == userRepository.count()) {
+        if (userRepository.count() == 0) {
             log.info("No users found, creating admin user with email: {}", email);
             User admin = new User();
             admin.setName("Administrator");
@@ -177,7 +180,7 @@ public class UserService {
      */
     @Transactional
     public void save(UserRequest userRequest) {
-        if (null == userRequest.getId()) {
+        if (userRequest.getId() == null) {
             create(userRequest);
         } else {
             update(userRequest.getId(), userRequest);

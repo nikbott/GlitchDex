@@ -12,6 +12,8 @@ import com.sksamuel.scrimage.webp.WebpWriter;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +34,7 @@ public class ImageProcessingService {
     private static final Logger logger = LoggerFactory.getLogger(ImageProcessingService.class);
     private final StrategyRepository strategyRepository;
     private final FileStorageService fileStorageService;
+    private final MessageSource messageSource;
 
 
     /**
@@ -48,7 +51,7 @@ public class ImageProcessingService {
 
         try {
             Strategy strategy = strategyRepository.findById(strategyId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Strategy not found for image processing: " + strategyId));
+                    .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.strategy.not_found_for_image_processing", new Object[]{strategyId}, LocaleContextHolder.getLocale())));
 
             Path tempFile = fileStorageService.loadAsResource(temporaryFilename).getFile().toPath();
 

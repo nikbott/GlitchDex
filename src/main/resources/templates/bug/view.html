@@ -9,36 +9,57 @@
     <div class="container mt-4">
         <h2 th:text="|#{bug.view.bug_id}${bug.id}: ${bug.title}|">Bug Details</h2>
         <div class="card">
-            <div class="card-header">
-                <span th:text="#{bug.view.reported_by}">Reported by</span>
-                <strong th:text="${bug.reporterName}"></strong>
-                <span th:text="#{bug.view.on}">on</span>
-                <span th:text="${#temporals.format(bug.reportDate, #messages.msg('datetime.format'))}"></span>
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <span th:text="#{bug.view.reported_by}">Reported by</span>
+                    <strong th:text="${bug.reporterName}"></strong>
+                    <span th:text="#{bug.view.on}">on</span>
+                    <span th:text="${#temporals.format(bug.reportDate, #messages.msg('datetime.format'))}"></span>
+                </div>
+                <div>
+                    <a class="btn btn-secondary btn-sm" th:href="@{/bugs/{id}/edit(id=${bug.id})}"
+                       th:text="#{form.edit}">Edit</a>
+                    <form class="d-inline" method="post"
+                          th:action="@{/bugs/{id}/delete(id=${bug.id})}"
+                          th:attr="onsubmit='return confirm(\'' + #{form.delete.confirm.bug} + '\');'">
+                        <button class="btn btn-danger btn-sm" th:text="#{form.delete}" type="submit">Delete</button>
+                    </form>
+                </div>
             </div>
             <div class="card-body">
                 <p>
-                    <strong th:text="#{bug.view.status}">Status:</strong> <span th:text="${bug.status.name()}"></span> |
+                    <strong th:text="#{bug.view.status}">Status:</strong> <span
+                        th:text="#{|bug.status.${bug.status}|}"></span> |
                     <strong th:text="#{bug.view.severity}">Severity:</strong> <span
-                        th:text="${bug.severity.name()}"></span> |
+                        th:text="#{|bug.severity.${bug.severity}|}"></span> |
                     <strong th:text="#{bug.view.priority}">Priority:</strong> <span
-                        th:text="${bug.priority.name()}"></span>
+                        th:text="#{|bug.priority.${bug.priority}|}"></span>
                 </p>
-                <h5 class="card-title" th:text="#{form.description}">Description</h5>
-                <p class="card-text" th:text="${bug.description}"></p>
-                <h5 class="card-title mt-4" th:text="#{bug.view.steps}">Steps to Reproduce</h5>
-                <p class="card-text" style="white-space: pre-wrap;" th:text="${bug.stepsToReproduce}"></p>
-                <h5 class="card-title mt-4" th:text="#{bug.view.attachment}">Attachment</h5>
-                <div th:if="${bug.attachmentFilename}">
-                    <a target="_blank" th:href="@{/files/{filename}(filename=${bug.attachmentFilename})}"
-                       th:text="${bug.attachmentFilename}"></a>
+
+                <div th:if="${bug.description != null and !bug.description.trim().isEmpty()}">
+                    <h5 class="card-title" th:text="#{form.description}">Description</h5>
+                    <p class="card-text" th:text="${bug.description}"></p>
                 </div>
-                <div th:unless="${bug.attachmentFilename}">
-                    <p th:text="#{bug.view.no_attachment}">No attachment provided.</p>
+
+                <div class="mt-4" th:if="${bug.stepsToReproduce != null and !bug.stepsToReproduce.trim().isEmpty()}">
+                    <h5 class="card-title" th:text="#{bug.view.steps}">Steps to Reproduce</h5>
+                    <p class="card-text" style="white-space: pre-wrap;" th:text="${bug.stepsToReproduce}"></p>
                 </div>
+
+                <div class="mt-4" th:if="${bug.attachmentFilenames != null and !bug.attachmentFilenames.isEmpty()}">
+                    <h5 class="card-title" th:text="#{bug.view.attachment}">Attachment</h5>
+                    <ul>
+                        <li th:each="filename : ${bug.attachmentFilenames}">
+                            <a target="_blank" th:href="@{/files/{filename}(filename=${filename})}"
+                               th:text="${filename}"></a>
+                        </li>
+                    </ul>
+                </div>
+
             </div>
         </div>
         <a class="btn btn-secondary mt-3"
-           th:href="@{/projects/{projectId}/sessions/{id}(projectId=${session.projectId}, id=${bug.testSessionId})}"
+           th:href="@{/projects/{projectId}/sessions/{id}(projectId=${session.projectId}, id=${session.id})}"
            th:text="#{bug.view.back_to_session}">Back to Test Session</a>
     </div>
 </section>

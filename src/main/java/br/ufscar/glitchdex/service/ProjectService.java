@@ -14,6 +14,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,6 +40,7 @@ public class ProjectService {
     private final UserRepository userRepository;
     private final ProjectMapper projectMapper;
     private final UserService userService;
+    private final MessageSource messageSource;
 
     /**
      * Retrieves a project by its ID.
@@ -48,7 +51,7 @@ public class ProjectService {
      */
     private Project getProjectById(Long projectId) {
         return projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + projectId));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.project.not_found", new Object[]{projectId}, LocaleContextHolder.getLocale())));
     }
 
     /**
@@ -60,7 +63,7 @@ public class ProjectService {
      */
     private User getUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.user.not_found", new Object[]{userId}, LocaleContextHolder.getLocale())));
     }
 
     /**
@@ -122,7 +125,7 @@ public class ProjectService {
     public ProjectDTO create(@Valid ProjectRequest projectRequest) {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         User creatorUser = userService.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.user.not_found_context", null, LocaleContextHolder.getLocale())));
         log.info("User {} is creating a new project with name: {}", creatorUser.getEmail(), projectRequest.getName());
         Project project = projectMapper.toProject(projectRequest);
 
@@ -153,9 +156,9 @@ public class ProjectService {
         existingProject.setName(projectRequest.getName());
         existingProject.setDescription(projectRequest.getDescription());
 
-        if (null != projectRequest.getMemberIds()) {
+        if (projectRequest.getMemberIds() != null) {
             if (projectRequest.getMemberIds().isEmpty()) {
-                throw new IllegalStateException("A project must have at least one member.");
+                throw new IllegalStateException(messageSource.getMessage("error.project.at_least_one_member", null, LocaleContextHolder.getLocale()));
             }
             List<User> members = userRepository.findAllById(projectRequest.getMemberIds());
             existingProject.setMembers(members);
@@ -203,9 +206,9 @@ public class ProjectService {
         Project project = getProjectById(projectId);
         User user = getUserById(userId);
 
-        if (1 >= project.getMembers().size()) {
+        if (project.getMembers().size() <= 1) {
             log.error("Cannot remove the last member from a project {}", projectId);
-            throw new IllegalStateException("Cannot remove the last member from a project");
+            throw new IllegalStateException(messageSource.getMessage("error.project.remove_last_member", null, LocaleContextHolder.getLocale()));
         }
 
         project.getMembers().remove(user);
@@ -230,7 +233,7 @@ public class ProjectService {
         User user = getUserById(userId);  // busca o User da base
         boolean isAssociated = projectRepository.existsByIdAndMembersContaining(projectId, user);
         if (!isAssociated) {
-            throw new AccessDeniedException("Usuário não tem permissão para acessar este projeto.");
+            throw new AccessDeniedException(messageSource.getMessage("error.project.access_denied", null, LocaleContextHolder.getLocale()));
         }
     }
 }

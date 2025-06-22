@@ -62,7 +62,7 @@ public class SecurityConfig {
                 )
                 .logout(logout -> logout
                         .logoutSuccessHandler((request, response, authentication) -> {
-                            if (null != authentication) {
+                            if (authentication != null) {
                                 log.info("User {} logged out successfully", authentication.getName());
                             }
                             response.sendRedirect("/home");

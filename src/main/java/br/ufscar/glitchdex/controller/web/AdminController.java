@@ -1,12 +1,15 @@
 package br.ufscar.glitchdex.controller.web;
 
 import br.ufscar.glitchdex.dto.UserRequest;
+import br.ufscar.glitchdex.exception.ResourceNotFoundException;
 import br.ufscar.glitchdex.mapper.UserMapper;
 import br.ufscar.glitchdex.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,6 +29,7 @@ public class AdminController {
     private static final Logger log = LoggerFactory.getLogger(AdminController.class);
     private final UserService userService;
     private final UserMapper userMapper;
+    private final MessageSource messageSource;
 
     /**
      * Displays a list of all users.
@@ -84,7 +88,7 @@ public class AdminController {
         log.info("Admin request to show edit form for user with id: {}", id);
         UserRequest userRequest = userService.findById(id)
                 .map(userMapper::toUserRequest)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid user Id:" + id));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.user.invalid_id", new Object[]{id}, LocaleContextHolder.getLocale())));
         model.addAttribute("userRequest", userRequest);
         return "admin/user-form";
     }

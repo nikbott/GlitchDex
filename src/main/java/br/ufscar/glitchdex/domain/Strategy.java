@@ -37,7 +37,6 @@ public class Strategy {
     /**
      * A detailed description of the strategy.
      */
-    @NotBlank
     @Column(columnDefinition = "TEXT")
     private String description;
 

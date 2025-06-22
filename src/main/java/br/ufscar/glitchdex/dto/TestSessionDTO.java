@@ -4,6 +4,7 @@ import br.ufscar.glitchdex.domain.SessionStatus;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class TestSessionDTO {
@@ -17,4 +18,5 @@ public class TestSessionDTO {
     private LocalDateTime createdAt;
     private LocalDateTime startTimestamp;
     private LocalDateTime finalizationTimestamp;
+    private List<BugDTO> bugs;
 }

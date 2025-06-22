@@ -1,9 +1,9 @@
 package br.ufscar.glitchdex.repository;
 
-import br.ufscar.glitchdex.domain.*; // Alterado para 'domain' se Bug estiver neste pacote
+import br.ufscar.glitchdex.domain.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param; // Adicionado import para @Param
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -18,14 +18,14 @@ import java.util.Optional;
 public interface BugRepository extends JpaRepository<Bug, Long> {
 
     /**
-     * Finds a bug by its ID, eagerly fetching its associated reporter.
-     * This avoids LazyInitializationException when accessing reporter details outside a transaction.
+     * Finds a bug by its ID, eagerly fetching its associated reporter and attachments.
+     * This avoids LazyInitializationException when accessing details outside a transaction.
      *
      * @param id The ID of the bug.
-     * @return an Optional containing the bug if found, with the reporter loaded.
+     * @return an Optional containing the bug if found, with the reporter and attachments loaded.
      */
-    @Query("SELECT b FROM Bug b JOIN FETCH b.reporter WHERE b.id = :id")
-    Optional<Bug> findByIdWithReporter(@Param("id") Long id); // Novo método adicionado aqui
+    @Query("SELECT b FROM Bug b JOIN FETCH b.reporter LEFT JOIN FETCH b.attachments WHERE b.id = :id")
+    Optional<Bug> findByIdWithReporter(@Param("id") Long id);
 
     /**
      * Finds a bug by its title.

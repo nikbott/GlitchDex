@@ -2,67 +2,115 @@
 <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title th:text="|Session ${testSession.id} - ${project.name}|">Session Details</title>
+    <title th:text="|#{session.view.title} ${testSession.id} - ${project.name}|">Session Details</title>
 </head>
 <body>
 <section>
     <div class="container mt-4">
-        <h2 th:text="|Session ${testSession.id}|">Session Details</h2>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 th:text="|#{session.view.title} ${testSession.id}|">Session Details</h2>
+            <div>
+                <a class="btn btn-secondary"
+                   th:href="@{/projects/{projectId}/sessions/{id}/edit(projectId=${project.id}, id=${testSession.id})}"
+                   th:if="${testSession.status?.name() != 'FINALIZED'}" th:text="#{form.edit}">Edit</a>
+                <form class="d-inline"
+                      method="post"
+                      th:action="@{/projects/{projectId}/sessions/{id}/delete(projectId=${project.id}, id=${testSession.id})}"
+                      th:attr="onsubmit='return confirm(\'' + #{form.delete.confirm.session} + '\');'">
+                    <button class="btn btn-danger" th:text="#{session.view.delete_session}" type="submit">Delete
+                        Session
+                    </button>
+                </form>
+            </div>
+        </div>
         <div class="card">
             <div class="card-body">
                 <h5 class="card-title" th:text="${testSession.description}"></h5>
                 <p class="card-text">
-                    <strong>Status:</strong>
+                    <strong th:text="#{project.view.session.status}">Status:</strong>
                     <span class="badge"
                           th:classappend="${testSession.status?.name() == 'CREATED' ? 'bg-secondary' : (testSession.status?.name() == 'IN_EXECUTION' ? 'bg-primary' : (testSession.status?.name() == 'FINALIZED' ? 'bg-success' : 'bg-warning'))}"
-                          th:text="${testSession.status?.name() ?: 'UNKNOWN'}"></span>
+                          th:text="#{|session.status.${testSession.status}|}"></span>
                 </p>
-                <p class="card-text"><strong>Tester:</strong> <span th:text="${testSession.testerName}"></span></p>
-                <p class="card-text"><strong>Criada em:</strong> <span
-                        th:text="${#temporals.format(testSession.createdAt, #messages.msg('datetime.format'))}"></span></p>
+                <p class="card-text"><strong th:text="#{project.view.session.tester}">Tester:</strong> <span
+                        th:text="${testSession.testerName}"></span></p>
+                <p class="card-text"><strong th:text="#{session.view.created_at}">Criada em:</strong> <span
+                        th:text="${#temporals.format(testSession.createdAt, #messages.msg('datetime.format'))}"></span>
+                </p>
 
-                <!-- Mostrar timestamp de início se a sessão foi iniciada -->
                 <p class="card-text" th:if="${testSession.startTimestamp != null}">
-                    <strong>Iniciada em:</strong>
+                    <strong th:text="#{session.view.started_at}">Iniciada em:</strong>
                     <span th:text="${#temporals.format(testSession.startTimestamp, #messages.msg('datetime.format'))}"></span>
                 </p>
 
-                <!-- Mostrar timestamp de finalização se a sessão foi finalizada -->
                 <p class="card-text" th:if="${testSession.finalizationTimestamp != null}">
-                    <strong>Finalizada em:</strong>
+                    <strong th:text="#{session.view.finished_at}">Finalizada em:</strong>
                     <span th:text="${#temporals.format(testSession.finalizationTimestamp, #messages.msg('datetime.format'))}"></span>
                 </p>
 
-                <!-- Controles da Sessão -->
                 <div class="mt-3 mb-3">
-                    <!-- Botão Iniciar - só aparece se status for CREATED -->
-                    <form th:if="${testSession.status?.name() == 'CREATED'}"
-                          method="POST"
+                    <form method="POST"
+                          style="display: inline;"
                           th:action="@{/projects/{projectId}/sessions/{id}/start(projectId=${project.id}, id=${testSession.id})}"
-                          style="display: inline;">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                        <button type="submit" class="btn btn-success me-2">
-                            <i class="fas fa-play"></i> Iniciar Sessão
+                          th:if="${testSession.status?.name() == 'CREATED'}">
+                        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+                        <button class="btn btn-success me-2" type="submit">
+                            <i class="fas fa-play"></i> <span
+                                th:text="#{session.view.start_session}">Iniciar Sessão</span>
                         </button>
                     </form>
 
-                    <!-- Botão Finalizar - só aparece se status for IN_EXECUTION -->
-                    <form th:if="${testSession.status?.name() == 'IN_EXECUTION'}"
-                          method="POST"
+                    <form method="POST"
+                          style="display: inline;"
                           th:action="@{/projects/{projectId}/sessions/{id}/finish(projectId=${project.id}, id=${testSession.id})}"
-                          style="display: inline;">
-                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                        <button type="submit" class="btn btn-danger me-2"
-                                onclick="return confirm('Tem certeza que deseja finalizar esta sessão?')">
-                            <i class="fas fa-stop"></i> Finalizar Sessão
+                          th:if="${testSession.status?.name() == 'IN_EXECUTION'}">
+                        <input th:name="${_csrf.parameterName}" th:value="${_csrf.token}" type="hidden"/>
+                        <button class="btn btn-danger me-2"
+                                th:attr="onclick='return confirm(\'' + #{session.view.confirm_finish} + '\');'"
+                                type="submit">
+                            <i class="fas fa-stop"></i> <span
+                                th:text="#{session.view.finish_session}">Finalizar Sessão</span>
                         </button>
                     </form>
                 </div>
 
-                <a class="btn btn-primary" th:href="@{/bugs/new(testSessionId=${testSession.id})}">Report a Bug</a>
+                <a class="btn btn-primary" th:href="@{/bugs/new(testSessionId=${testSession.id})}"
+                   th:if="${testSession.status?.name() == 'IN_EXECUTION'}" th:text="#{bug.form.title}">Report a Bug</a>
             </div>
         </div>
-        <a class="btn btn-secondary mt-3" th:href="@{/projects/{id}(id=${project.id})}">Back to Project</a>
+
+        <div class="mt-4">
+            <h3 th:text="#{bug.view.reported_bugs}">Reported Bugs</h3>
+            <table class="table table-hover">
+                <thead>
+                <tr>
+                    <th scope="col" th:text="#{bug.view.bug_id}">Bug ID</th>
+                    <th scope="col" th:text="#{bug.form.bug_title}">Title</th>
+                    <th scope="col" th:text="#{bug.form.status}">Status</th>
+                    <th scope="col" th:text="#{form.actions}">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="bug : ${testSession.bugs}">
+                    <td th:text="${bug.id}"></td>
+                    <td th:text="${bug.title}"></td>
+                    <td><span class="badge bg-info" th:text="#{|bug.status.${bug.status}|}"></span></td>
+                    <td>
+                        <a class="btn btn-sm btn-info" th:href="@{/bugs/{id}(id=${bug.id})}"
+                           th:text="#{home.view_details}">Details</a>
+                    </td>
+                </tr>
+                <tr th:if="${testSession.bugs == null or testSession.bugs.isEmpty()}">
+                    <td class="text-center" colspan="4" th:text="#{bug.view.no_bugs_reported}">No bugs reported for this
+                        session.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <a class="btn btn-secondary mt-3" th:href="@{/projects/{id}(id=${project.id})}"
+           th:text="#{project.view.back_to_project}">Back to Project</a>
     </div>
 </section>
 </body>

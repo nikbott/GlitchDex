@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-@ControllerAdvice(basePackages = "br.ufscar.glitchdex.controller.web")
+@ControllerAdvice
 @RequiredArgsConstructor
 public class LanguageControllerAdvice {
 
@@ -22,14 +22,17 @@ public class LanguageControllerAdvice {
 
     /**
      * Provides a list of Language objects to the model. The name of each language
-     * is resolved using the MessageSource for proper internationalization.
+     * is resolved using the MessageSource for proper internationalization, ensuring
+     * each language is displayed in its native form.
      */
     @ModelAttribute("languages")
     public List<Language> getLanguages() {
         Locale currentLocale = LocaleContextHolder.getLocale();
         return i18nConfig.getLanguages().stream()
                 .map(code -> {
-                    String name = messageSource.getMessage("header.lang." + code, null, code, currentLocale);
+                    // Create a locale for the specific language code to get its native name
+                    Locale nameLocale = new Locale(code);
+                    String name = messageSource.getMessage("header.lang." + code, null, code, nameLocale);
                     return new Language(code, name);
                 })
                 .sorted(Comparator.comparing(lang -> !lang.getCode().equals(currentLocale.getLanguage())))
@@ -47,7 +50,7 @@ public class LanguageControllerAdvice {
         // Check if the current language is supported, otherwise default to "en"
         String finalLangCode = i18nConfig.getLanguages().contains(currentLangCode) ? currentLangCode : "en";
 
-        String name = messageSource.getMessage("header.lang." + finalLangCode, null, finalLangCode, currentLocale);
+        String name = messageSource.getMessage("header.lang." + finalLangCode, null, finalLangCode, new Locale(finalLangCode));
         return new Language(finalLangCode, name);
     }
 }

@@ -27,7 +27,7 @@ public interface ProjectMapper {
     List<ProjectDTO> toProjectDTOs(List<Project> projects);
 
     default List<Long> membersToMemberIds(List<UserDTO> members) {
-        if (null == members) {
+        if (members == null) {
             return null;
         }
         return members.stream().map(UserDTO::getId).collect(Collectors.toList());

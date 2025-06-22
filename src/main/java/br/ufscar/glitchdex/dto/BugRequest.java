@@ -12,10 +12,9 @@ import lombok.Data;
 public class BugRequest {
 
     @NotBlank
-    @Size(min = 5, max = 200)
+    @Size(min = 2, max = 200)
     private String title;
 
-    @NotBlank
     @Size(max = 2048)
     private String description;
 

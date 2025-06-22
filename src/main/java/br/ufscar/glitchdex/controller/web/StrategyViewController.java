@@ -9,6 +9,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,6 +27,7 @@ public class StrategyViewController {
     private static final Logger log = LoggerFactory.getLogger(StrategyViewController.class);
     private final StrategyService strategyService;
     private final StrategyMapper strategyMapper;
+    private final MessageSource messageSource;
 
     @GetMapping
     public String listStrategies(Model model) {
@@ -55,7 +58,7 @@ public class StrategyViewController {
         }
 
         strategyService.create(strategyRequest, currentUser, imageFile);
-        redirectAttributes.addFlashAttribute("successMessage", "Strategy created successfully!");
+        redirectAttributes.addFlashAttribute("successMessage", messageSource.getMessage("strategy.form.success.create", null, LocaleContextHolder.getLocale()));
         log.info("Strategy with name: {} created successfully", strategyRequest.getName());
         return "redirect:/strategies";
     }
@@ -89,7 +92,7 @@ public class StrategyViewController {
         }
 
         strategyService.update(id, strategyRequest, imageFile);
-        redirectAttributes.addFlashAttribute("successMessage", "Strategy updated successfully!");
+        redirectAttributes.addFlashAttribute("successMessage", messageSource.getMessage("strategy.form.success.update", null, LocaleContextHolder.getLocale()));
         log.info("Strategy with id: {} updated successfully", id);
         return "redirect:/strategies";
     }
@@ -99,7 +102,7 @@ public class StrategyViewController {
     public String deleteStrategy(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         log.info("Request to delete strategy with id: {}", id);
         strategyService.delete(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Strategy deleted successfully!");
+        redirectAttributes.addFlashAttribute("successMessage", messageSource.getMessage("strategy.form.success.delete", null, LocaleContextHolder.getLocale()));
         log.info("Strategy with id: {} deleted successfully", id);
         return "redirect:/strategies";
     }

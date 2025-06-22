@@ -1,38 +1,42 @@
 package br.ufscar.glitchdex.domain;
 
 import br.ufscar.glitchdex.exception.IllegalStatusChangeException;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 
 public class TestSessionStateMachine {
 
     private final TestSession testSession;
+    private final MessageSource messageSource;
 
-    public TestSessionStateMachine(TestSession testSession) {
+    public TestSessionStateMachine(TestSession testSession, MessageSource messageSource) {
         this.testSession = testSession;
+        this.messageSource = messageSource;
     }
 
     public void startSession() throws IllegalStatusChangeException {
-        if (SessionStatus.CREATED != testSession.getStatus()) {
-            throw new IllegalStatusChangeException("Session can only be started when in CREATED status");
+        if (testSession.getStatus() != SessionStatus.CREATED) {
+            throw new IllegalStatusChangeException(messageSource.getMessage("error.session.start_invalid_status", null, LocaleContextHolder.getLocale()));
         }
         testSession.setStatus(SessionStatus.IN_EXECUTION);
     }
 
     public void finalizeSession() throws IllegalStatusChangeException {
-        if (SessionStatus.IN_EXECUTION != testSession.getStatus()) {
-            throw new IllegalStatusChangeException("Session can only be finalized when in IN_EXECUTION status");
+        if (testSession.getStatus() != SessionStatus.IN_EXECUTION) {
+            throw new IllegalStatusChangeException(messageSource.getMessage("error.session.finalize_invalid_status", null, LocaleContextHolder.getLocale()));
         }
         testSession.setStatus(SessionStatus.FINALIZED);
     }
 
     public void canReportBug() throws IllegalStatusChangeException {
-        if (SessionStatus.IN_EXECUTION != testSession.getStatus()) {
-            throw new IllegalStatusChangeException("Bugs can only be reported for sessions that are in execution.");
+        if (testSession.getStatus() != SessionStatus.IN_EXECUTION) {
+            throw new IllegalStatusChangeException(messageSource.getMessage("error.session.report_bug_invalid_status", null, LocaleContextHolder.getLocale()));
         }
     }
 
     public void canUpdateSession() throws IllegalStatusChangeException {
-        if (SessionStatus.FINALIZED == testSession.getStatus()) {
-            throw new IllegalStatusChangeException("Cannot modify a finalized session.");
+        if (testSession.getStatus() == SessionStatus.FINALIZED) {
+            throw new IllegalStatusChangeException(messageSource.getMessage("error.session.update_finalized", null, LocaleContextHolder.getLocale()));
         }
     }
 }

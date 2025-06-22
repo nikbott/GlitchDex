@@ -11,7 +11,6 @@ public class StrategyRequest {
     @Size(min = 2, max = 100)
     private String name;
 
-    @NotBlank
     @Size(max = 1000)
     private String description;
 

@@ -34,7 +34,7 @@ public class HomeController {
     public String home(Model model, UserDTO user,
                        @RequestParam(name = Constants.SORT, defaultValue = "name") String sort,
                        @RequestParam(name = Constants.ORDER, defaultValue = "asc") String order) {
-        if (null != user) {
+        if (user != null) {
             log.info("User {} is accessing home page", user.getEmail());
             model.addAttribute("user", user);
             model.addAttribute("projects", projectService.findByMember(user, sort, order));

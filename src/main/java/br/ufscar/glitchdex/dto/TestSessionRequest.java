@@ -1,6 +1,5 @@
 package br.ufscar.glitchdex.dto;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
@@ -12,7 +11,6 @@ public class TestSessionRequest {
     @Positive
     Integer durationInMinutes;
 
-    @NotBlank
     private String description;
 
     @NotNull

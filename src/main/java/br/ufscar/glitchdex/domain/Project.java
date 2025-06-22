@@ -42,7 +42,6 @@ public class Project {
     /**
      * A brief description of the project.
      */
-    @NotBlank
     @Size(max = 500)
     private String description;
 

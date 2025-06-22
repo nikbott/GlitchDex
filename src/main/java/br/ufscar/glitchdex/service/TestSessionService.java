@@ -15,6 +15,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +38,7 @@ public class TestSessionService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final TestSessionMapper testSessionMapper;
+    private final MessageSource messageSource;
 
     /**
      * Finds all test sessions for a given project.
@@ -46,7 +49,7 @@ public class TestSessionService {
     public List<TestSessionDTO> findByProjectId(Long projectId) {
         log.info("Finding test sessions for project with id: {}", projectId);
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + projectId));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.project.not_found", new Object[]{projectId}, LocaleContextHolder.getLocale())));
         return testSessionMapper.toTestSessionDTOs(testSessionRepository.findByProject(project));
     }
 
@@ -70,7 +73,7 @@ public class TestSessionService {
     public List<TestSessionDTO> findByStrategyId(Long strategyId) {
         log.info("Finding test sessions for strategy with id: {}", strategyId);
         Strategy strategy = strategyRepository.findById(strategyId)
-                .orElseThrow(() -> new ResourceNotFoundException("Strategy not found with id: " + strategyId));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.strategy.not_found", new Object[]{strategyId}, LocaleContextHolder.getLocale())));
         return findByStrategy(strategy);
     }
 
@@ -84,7 +87,7 @@ public class TestSessionService {
     public TestSessionDTO findById(Long id) {
         log.info("Finding test session with id: {}", id);
         TestSession session = testSessionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Test Session not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.session.not_found", new Object[]{id}, LocaleContextHolder.getLocale())));
         return testSessionMapper.toTestSessionDTO(session);
     }
 
@@ -99,11 +102,11 @@ public class TestSessionService {
     public TestSessionDTO create(TestSessionRequest sessionRequest, UserDTO testerDto) {
         log.info("User {} is creating a test session for project {}", testerDto.getEmail(), sessionRequest.getProjectId());
         User tester = userRepository.findById(testerDto.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + testerDto.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.user.not_found", new Object[]{testerDto.getId()}, LocaleContextHolder.getLocale())));
         Strategy strategy = strategyRepository.findById(sessionRequest.getStrategyId())
-                .orElseThrow(() -> new ResourceNotFoundException("Strategy not found with id: " + sessionRequest.getStrategyId()));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.strategy.not_found", new Object[]{sessionRequest.getStrategyId()}, LocaleContextHolder.getLocale())));
         Project project = projectRepository.findById(sessionRequest.getProjectId())
-                .orElseThrow(() -> new ResourceNotFoundException("Project not found with id: " + sessionRequest.getProjectId()));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.project.not_found", new Object[]{sessionRequest.getProjectId()}, LocaleContextHolder.getLocale())));
 
         TestSession testSession = new TestSession();
         testSession.setStrategy(strategy);
@@ -130,19 +133,19 @@ public class TestSessionService {
     public TestSessionDTO update(Long id, TestSessionRequest testSessionRequest, UserDTO userDto) throws IllegalStatusChangeException {
         log.info("User {} is updating test session with id: {}", userDto.getEmail(), id);
         User user = userRepository.findById(userDto.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userDto.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.user.not_found", new Object[]{userDto.getId()}, LocaleContextHolder.getLocale())));
         TestSession testSession = testSessionRepository.findByIdAndTester(id, user)
-                .orElseThrow(() -> new ResourceNotFoundException("Test Session not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.session.not_found", new Object[]{id}, LocaleContextHolder.getLocale())));
 
-        TestSessionStateMachine stateMachine = new TestSessionStateMachine(testSession);
+        TestSessionStateMachine stateMachine = new TestSessionStateMachine(testSession, messageSource);
         stateMachine.canUpdateSession();
 
         Strategy strategy = strategyRepository.findById(testSessionRequest.getStrategyId())
-                .orElseThrow(() -> new ResourceNotFoundException("Strategy not found with id: " + testSessionRequest.getStrategyId()));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.strategy.not_found", new Object[]{testSessionRequest.getStrategyId()}, LocaleContextHolder.getLocale())));
 
         testSession.setStrategy(strategy);
-        testSession.setTester(user);
         testSession.setDurationInMinutes(testSessionRequest.getDurationInMinutes());
+        testSession.setDescription(testSessionRequest.getDescription());
 
         TestSession updatedSession = testSessionRepository.save(testSession);
         log.info("Test session with id {} updated successfully", id);
@@ -158,7 +161,7 @@ public class TestSessionService {
     public void delete(Long id) {
         log.info("Deleting test session with id: {}", id);
         if (!testSessionRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Test Session not found with id: " + id);
+            throw new ResourceNotFoundException(messageSource.getMessage("error.session.not_found", new Object[]{id}, LocaleContextHolder.getLocale()));
         }
         testSessionRepository.deleteById(id);
         log.info("Test session with id {} deleted successfully", id);
@@ -175,9 +178,9 @@ public class TestSessionService {
     public TestSessionDTO startSession(Long id) throws IllegalStatusChangeException {
         log.info("Starting test session with id: {}", id);
         TestSession testSession = testSessionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Test Session not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.session.not_found", new Object[]{id}, LocaleContextHolder.getLocale())));
 
-        TestSessionStateMachine stateMachine = new TestSessionStateMachine(testSession);
+        TestSessionStateMachine stateMachine = new TestSessionStateMachine(testSession, messageSource);
         stateMachine.startSession();
 
         testSession.setStartTimestamp(LocalDateTime.now());
@@ -197,9 +200,9 @@ public class TestSessionService {
     public TestSessionDTO finalizeSession(Long id) throws IllegalStatusChangeException {
         log.info("Finalizing test session with id: {}", id);
         TestSession testSession = testSessionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Test Session not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.session.not_found", new Object[]{id}, LocaleContextHolder.getLocale())));
 
-        TestSessionStateMachine stateMachine = new TestSessionStateMachine(testSession);
+        TestSessionStateMachine stateMachine = new TestSessionStateMachine(testSession, messageSource);
         stateMachine.finalizeSession();
 
         testSession.setFinalizationTimestamp(LocalDateTime.now());
@@ -210,14 +213,14 @@ public class TestSessionService {
 
     public TestSession findByIdEntity(Long id) {
         return testSessionRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Test Session not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.session.not_found", new Object[]{id}, LocaleContextHolder.getLocale())));
     }
 
     public void verifyOwnership(Long sessionId, Long userId) {
         TestSession session = testSessionRepository.findById(sessionId)
-                .orElseThrow(() -> new ResourceNotFoundException("Sessão não encontrada com id: " + sessionId));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.session.not_found", new Object[]{sessionId}, LocaleContextHolder.getLocale())));
         if (!session.getTester().getId().equals(userId)) {
-            throw new AccessDeniedException("Usuário não autorizado para essa sessão.");
+            throw new AccessDeniedException(messageSource.getMessage("error.session.access_denied", null, LocaleContextHolder.getLocale()));
         }
     }
 
@@ -230,7 +233,7 @@ public class TestSessionService {
     public void updateFinish(Long id, LocalDateTime finishTimestamp, SessionStatus newStatus) throws IllegalStatusChangeException {
         TestSession session = findByIdEntity(id);
 
-        TestSessionStateMachine stateMachine = new TestSessionStateMachine(session);
+        TestSessionStateMachine stateMachine = new TestSessionStateMachine(session, messageSource);
         stateMachine.finalizeSession();
 
         session.setStatus(newStatus);
@@ -244,7 +247,7 @@ public class TestSessionService {
         TestSession session = findByIdEntity(id);
 
         if (session.getStatus() != SessionStatus.IN_EXECUTION) {
-            throw new IllegalStateException("Descrição só pode ser atualizada se a sessão estiver em execução.");
+            throw new IllegalStateException(messageSource.getMessage("error.session.update_description_not_in_execution", null, LocaleContextHolder.getLocale()));
         }
 
         String currentDescription = session.getDescription() != null ? session.getDescription() : "";
@@ -264,13 +267,13 @@ public class TestSessionService {
             if (session.getStartTimestamp() != null && session.getDurationInMinutes() != null) {
                 LocalDateTime expectedEnd = session.getStartTimestamp().plusMinutes(session.getDurationInMinutes());
                 if (now.isAfter(expectedEnd)) {
-                    TestSessionStateMachine stateMachine = new TestSessionStateMachine(session);
+                    TestSessionStateMachine stateMachine = new TestSessionStateMachine(session, messageSource);
                     try {
                         stateMachine.finalizeSession();
                         session.setFinalizationTimestamp(now);
                         testSessionRepository.save(session);
                     } catch (IllegalStatusChangeException e) {
-                        log.warn("Não foi possível finalizar a sessão {} automaticamente: {}", session.getId(), e.getMessage());
+                        log.warn(messageSource.getMessage("error.session.auto_finalize_failed", new Object[]{session.getId(), e.getMessage()}, LocaleContextHolder.getLocale()));
                     }
                 }
             }
@@ -281,7 +284,7 @@ public class TestSessionService {
         log.info("Buscando sessões de teste cujas estratégias pertencem ao projeto {}", projectId);
 
         Project project = projectRepository.findById(projectId)
-                .orElseThrow(() -> new ResourceNotFoundException("Projeto não encontrado com id: " + projectId));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.project.not_found", new Object[]{projectId}, LocaleContextHolder.getLocale())));
 
         List<TestSession> sessions = testSessionRepository.findByProject(project);
 
@@ -337,8 +340,6 @@ public class TestSessionService {
         LocalDateTime expirationTime = referenceTime.plusMinutes(session.getDurationInMinutes());
         return now.isAfter(expirationTime);
     }
-
-
 
 
 }

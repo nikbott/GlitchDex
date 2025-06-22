@@ -12,8 +12,12 @@
         <div class="card mb-4">
             <div class="card-body">
                 <h5 class="card-title" th:text="${project.name}"></h5>
-                <h6 class="card-subtitle mb-2 text-muted" th:text="#{form.description}">Description</h6>
-                <p class="card-text" th:text="${project.description}"></p>
+
+                <div th:if="${project.description != null and !project.description.trim().isEmpty()}">
+                    <h6 class="card-subtitle mb-2 text-muted" th:text="#{form.description}">Description</h6>
+                    <p class="card-text" th:text="${project.description}"></p>
+                </div>
+
                 <h6 class="card-subtitle mb-2 text-muted" th:text="#{project.view.creation_date}">Creation Date</h6>
                 <p class="card-text"
                    th:text="${#temporals.format(project.createdAt, #messages.msg('datetime.format'))}"></p>
@@ -42,7 +46,7 @@
                 <td th:text="${testSession.testerName}"></td>
                 <td><span class="badge"
                           th:classappend="${testSession.status?.name() == 'CREATED' ? 'bg-secondary' : (testSession.status?.name() == 'IN_EXECUTION' ? 'bg-primary' : (testSession.status?.name() == 'FINALIZED' ? 'bg-success' : 'bg-warning'))}"
-                          th:text="${testSession.status?.name() ?: 'UNKNOWN'}"></span></td>
+                          th:text="#{|session.status.${testSession.status}|}"></span></td>
                 <td th:text="${#temporals.format(testSession.createdAt, #messages.msg('datetime.format'))}"></td>
                 <td>
                     <a class="btn btn-sm btn-info"

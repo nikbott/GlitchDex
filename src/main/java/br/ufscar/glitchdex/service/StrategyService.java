@@ -13,6 +13,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,6 +34,7 @@ public class StrategyService {
     private final StrategyMapper strategyMapper;
     private final FileStorageService fileStorageService;
     private final ImageProcessingService imageProcessingService;
+    private final MessageSource messageSource;
 
     /**
      * Finds all strategies and returns their DTOs.
@@ -53,7 +56,7 @@ public class StrategyService {
     public StrategyDTO findById(Long id) {
         log.info("Finding strategy with id: {}", id);
         Strategy strategy = strategyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Strategy not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.strategy.not_found", new Object[]{id}, LocaleContextHolder.getLocale())));
         return strategyMapper.toStrategyDTO(strategy);
     }
 
@@ -81,7 +84,7 @@ public class StrategyService {
     public StrategyDTO create(StrategyRequest strategyRequest, UserDTO creatorDto, MultipartFile imageFile) {
         log.info("User {} is creating a new strategy with name: {}", creatorDto.getEmail(), strategyRequest.getName());
         User creator = userRepository.findById(creatorDto.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + creatorDto.getId()));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.user.not_found", new Object[]{creatorDto.getId()}, LocaleContextHolder.getLocale())));
 
         Strategy strategy = new Strategy();
         strategy.setName(strategyRequest.getName());
@@ -90,7 +93,7 @@ public class StrategyService {
         strategy.setTips(strategyRequest.getTips());
         strategy.setCreator(creator);
 
-        if (null != imageFile && !imageFile.isEmpty()) {
+        if (imageFile != null && !imageFile.isEmpty()) {
             String tempFilename = fileStorageService.store(imageFile);
             strategy.setImageUrl("/files/" + tempFilename);
         }
@@ -98,7 +101,7 @@ public class StrategyService {
         Strategy savedStrategy = strategyRepository.save(strategy);
         log.info("Strategy '{}' created successfully with id {}", savedStrategy.getName(), savedStrategy.getId());
 
-        if (null != imageFile && !imageFile.isEmpty()) {
+        if (imageFile != null && !imageFile.isEmpty()) {
             String tempFilename = savedStrategy.getImageUrl().substring(savedStrategy.getImageUrl().lastIndexOf('/') + 1);
             imageProcessingService.convertToWebpAndUpdateStrategy(savedStrategy.getId(), tempFilename);
         }
@@ -118,7 +121,7 @@ public class StrategyService {
     public StrategyDTO update(Long id, StrategyRequest strategyRequest, MultipartFile imageFile) {
         log.info("Updating strategy with id: {}", id);
         Strategy existingStrategy = strategyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Strategy not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.strategy.not_found", new Object[]{id}, LocaleContextHolder.getLocale())));
 
         String oldImageUrl = existingStrategy.getImageUrl();
 
@@ -128,7 +131,7 @@ public class StrategyService {
         existingStrategy.setTips(strategyRequest.getTips());
 
 
-        if (null != imageFile && !imageFile.isEmpty()) {
+        if (imageFile != null && !imageFile.isEmpty()) {
             String tempFilename = fileStorageService.store(imageFile);
             existingStrategy.setImageUrl("/files/" + tempFilename);
         }
@@ -136,10 +139,10 @@ public class StrategyService {
         Strategy updatedStrategy = strategyRepository.save(existingStrategy);
         log.info("Strategy with id {} updated successfully", id);
 
-        if (null != imageFile && !imageFile.isEmpty()) {
+        if (imageFile != null && !imageFile.isEmpty()) {
             String tempFilename = updatedStrategy.getImageUrl().substring(updatedStrategy.getImageUrl().lastIndexOf('/') + 1);
             imageProcessingService.convertToWebpAndUpdateStrategy(updatedStrategy.getId(), tempFilename);
-            if (null != oldImageUrl && !oldImageUrl.isBlank()) {
+            if (oldImageUrl != null && !oldImageUrl.isBlank()) {
                 String oldFilename = oldImageUrl.substring(oldImageUrl.lastIndexOf('/') + 1);
                 fileStorageService.delete(oldFilename);
             }
@@ -156,10 +159,10 @@ public class StrategyService {
     public void delete(Long id) {
         log.info("Deleting strategy with id: {}", id);
         Strategy strategy = strategyRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Strategy not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.strategy.not_found", new Object[]{id}, LocaleContextHolder.getLocale())));
 
         String imageUrl = strategy.getImageUrl();
-        if (null != imageUrl && !imageUrl.isBlank()) {
+        if (imageUrl != null && !imageUrl.isBlank()) {
             String filename = imageUrl.substring(imageUrl.lastIndexOf('/') + 1);
             fileStorageService.delete(filename);
         }
