@@ -59,7 +59,7 @@
             </div>
         </div>
         <a class="btn btn-secondary mt-3"
-           th:href="@{/projects/{projectId}/sessions/{sessionId}(projectId=${session.projectId}, sessionId=${session.id})}"
+           th:href="@{/projects/{projectId}/sessions/{sessionId}(projectId=${TestSession.projectId}, sessionId=${TestSession.id})}"
            th:text="#{bug.view.back_to_session}">Back to Test Session</a>
     </div>
 </section>
