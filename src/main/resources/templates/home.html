@@ -7,16 +7,6 @@
 <body>
 <section>
     <div class="container mt-4">
-        <div class="p-5 mb-4 bg-light rounded-3">
-            <div class="container-fluid py-5">
-                <h1 class="display-5 fw-bold" th:text="#{home.welcome}">Welcome to GlitchDex</h1>
-                <p class="col-md-8 fs-4" th:text="#{home.description}">Your platform for managing software testing
-                    projects and bug tracking.</p>
-                <a class="btn btn-primary btn-lg" th:href="@{/strategies}" th:text="#{home.manage_strategies}"
-                   type="button">Manage Strategies</a>
-            </div>
-        </div>
-
         <div sec:authorize="isAuthenticated()">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h3 th:text="#{home.projects}">My Projects</h3>
@@ -50,12 +40,34 @@
                         one now!</a></p>
                 </div>
                 <div class="col-md-4 mb-4" th:each="project : ${projects}">
-                    <div class="card h-100">
-                        <div class="card-body d-flex flex-column">
+                    <div class="card h-100 card-project">
+                        <div class="card-body">
                             <h5 class="card-title" th:text="${project.name}">Project Name</h5>
-                            <p class="card-text flex-grow-1" th:text="${project.description}">Project Description</p>
-                            <a class="btn btn-primary mt-auto" th:href="@{/projects/{id}(id=${project.id})}"
+                            <p class="card-text" th:text="${project.description}">Project Description</p>
+                        </div>
+                        <div class="card-footer d-flex justify-content-between align-items-center">
+                            <a class="btn btn-primary" th:href="@{/projects/{id}(id=${project.id})}"
                                th:text="#{home.view_details}">View Details</a>
+                            <div class="dropdown" sec:authorize="hasAuthority('ADMIN')">
+                                <button aria-expanded="false" class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                                        data-bs-toggle="dropdown" id="projectOptions" type="button">
+                                    <span th:text="#{home.more_options}">More Options</span>
+                                </button>
+                                <ul aria-labelledby="projectOptions" class="dropdown-menu">
+                                    <li><a class="dropdown-item"
+                                           th:href="@{/projects/{id}/edit(id=${project.id})}"
+                                           th:text="#{form.edit}">Edit</a></li>
+                                    <li>
+                                        <form method="post" th:action="@{/projects/{id}/delete(id=${project.id})}">
+                                            <button class="dropdown-item text-danger"
+                                                    onclick="return confirm('Are you sure you want to delete this project?')"
+                                                    th:text="#{form.delete}"
+                                                    type="submit">Delete
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>

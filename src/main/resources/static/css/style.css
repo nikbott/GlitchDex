@@ -1,6 +1,5 @@
 /* Custom CSS for GlitchDex */
 body {
-    padding-top: 56px; /* Adjust for fixed navbar */
     background-color: #f8f9fa; /* Lighter background color */
     font-family: 'Inter', sans-serif; /* A modern, clean font */
 }
@@ -20,6 +19,26 @@ main {
     transform: translateY(-5px); /* Add a subtle hover effect */
 }
 
+.card-project .card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.card-project .card-title {
+    font-weight: 500;
+}
+
+.card-project .card-text {
+    flex-grow: 1;
+    color: #6c757d;
+}
+
+.card-project .card-footer {
+    background-color: transparent;
+    border-top: none;
+    padding: 1.25rem;
+}
+
 .btn-primary {
     background-color: #6c63ff;
     border-color: #6c63ff;
@@ -29,6 +48,18 @@ main {
     background-color: #574de2;
     border-color: #574de2;
 }
+
+.btn-danger-outline {
+    background-color: transparent;
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.btn-danger-outline:hover {
+    background-color: #dc3545;
+    color: #fff;
+}
+
 
 .table-hover tbody tr:hover {
     background-color: #f1f3f5;

@@ -41,7 +41,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         // Publicly accessible paths
                         .requestMatchers(
-                                "/css/**", "/js/**", "/images/**", "/webjars/**",
+                                "/css/**", "/js/**", "/images/**", "/webjars/**", "/fontawesome/**",
                                 "/login", "/error", "/", "/home", "/strategies/**", "/files/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/strategies").permitAll()
@@ -52,7 +52,7 @@ public class SecurityConfig {
                         .loginPage("/login")
                         .successHandler((request, response, authentication) -> {
                             log.info("User {} logged in successfully", authentication.getName());
-                            response.sendRedirect("/home");
+                            response.sendRedirect("/dashboard");
                         })
                         .failureHandler((request, response, exception) -> {
                             log.warn("Failed login attempt for user {}", request.getParameter("username"));
@@ -65,7 +65,7 @@ public class SecurityConfig {
                             if (authentication != null) {
                                 log.info("User {} logged out successfully", authentication.getName());
                             }
-                            response.sendRedirect("/home");
+                            response.sendRedirect("/");
                         })
                         .permitAll()
                 );

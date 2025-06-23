@@ -6,6 +6,7 @@ import br.ufscar.glitchdex.service.ProjectService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,32 +20,35 @@ public class HomeController {
     private final ProjectService projectService;
 
     /**
-     * Home page
+     * Landing page for anonymous users, redirects to dashboard if logged in.
      */
-    @GetMapping("/")
-    public String index() {
-        log.info("Redirecting to home page");
-        return "redirect:/home";
+    @GetMapping({"/", "/home"})
+    public String landingPage(Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            return "redirect:/dashboard";
+        }
+        log.info("Showing landing page for anonymous user");
+        return "landing";
     }
 
     /**
-     * Home page with dashboard
+     * Dashboard page for authenticated users.
      */
-    @GetMapping("/home")
-    public String home(Model model, UserDTO user,
-                       @RequestParam(name = Constants.SORT, defaultValue = "name") String sort,
-                       @RequestParam(name = Constants.ORDER, defaultValue = "asc") String order) {
+    @GetMapping("/dashboard")
+    public String dashboard(Model model, UserDTO user,
+                            @RequestParam(name = Constants.SORT, defaultValue = "name") String sort,
+                            @RequestParam(name = Constants.ORDER, defaultValue = "asc") String order) {
         if (user != null) {
-            log.info("User {} is accessing home page", user.getEmail());
+            log.info("User {} is accessing dashboard page", user.getEmail());
             model.addAttribute("user", user);
             model.addAttribute("projects", projectService.findByMember(user, sort, order));
         } else {
-            log.info("Anonymous user is accessing home page");
+            // Should be handled by security config, but as a fallback
+            return "redirect:/login";
         }
-
-
-        return "home";
+        return "home"; // The home.html template is now the dashboard
     }
+
 
     /**
      * Login page
