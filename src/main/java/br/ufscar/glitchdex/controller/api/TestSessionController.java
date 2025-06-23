@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -64,7 +65,7 @@ public class TestSessionController {
      */
     @PostMapping
     @PreAuthorize("hasAnyAuthority('ADMIN', 'TESTER')")
-    public ResponseEntity<TestSessionDTO> createSession(@Valid @RequestBody TestSessionRequest sessionRequest, UserDTO user) {
+    public ResponseEntity<TestSessionDTO> createSession(@Valid @RequestBody TestSessionRequest sessionRequest, @AuthenticationPrincipal UserDTO user) {
         log.info("Request from user {} to create a new session for project: {}", user.getEmail(), sessionRequest.getProjectId());
         TestSessionDTO createdSession = testSessionService.create(sessionRequest, user);
 
@@ -88,7 +89,7 @@ public class TestSessionController {
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'TESTER')")
-    public TestSessionDTO updateSession(@PathVariable Long id, @Valid @RequestBody TestSessionRequest sessionRequest, UserDTO user) throws IllegalStatusChangeException {
+    public TestSessionDTO updateSession(@PathVariable Long id, @Valid @RequestBody TestSessionRequest sessionRequest, @AuthenticationPrincipal UserDTO user) throws IllegalStatusChangeException {
         log.info("Request from user {} to update session with id: {}", user.getEmail(), id);
         return testSessionService.update(id, sessionRequest, user);
     }
@@ -96,13 +97,13 @@ public class TestSessionController {
 
     /**
      * Deletes a test session by its ID.
-     * This endpoint is restricted to users with the 'ADMIN' authority.
+     * This endpoint is restricted to users with 'ADMIN' or 'TESTER' authority.
      *
      * @param id The ID of the test session to delete.
      * @return A ResponseEntity with no content.
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'TESTER')")
     public ResponseEntity<Void> deleteSession(@PathVariable Long id) {
         log.info("Request to delete session with id: {}", id);
         testSessionService.delete(id);
@@ -120,9 +121,9 @@ public class TestSessionController {
      */
     @PostMapping("/{id}/start")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'TESTER')")
-    public ResponseEntity<TestSessionDTO> startSession(@PathVariable Long id) throws IllegalStatusChangeException {
+    public ResponseEntity<TestSessionDTO> startSession(@PathVariable Long id, @AuthenticationPrincipal UserDTO user) throws IllegalStatusChangeException {
         log.info("Request to start session with id: {}", id);
-        TestSessionDTO session = testSessionService.startSession(id);
+        TestSessionDTO session = testSessionService.startSession(id, user);
         return ResponseEntity.ok(session);
     }
 
@@ -136,9 +137,9 @@ public class TestSessionController {
      */
     @PostMapping("/{id}/finalize")
     @PreAuthorize("hasAnyAuthority('ADMIN', 'TESTER')")
-    public ResponseEntity<TestSessionDTO> finalizeSession(@PathVariable Long id) throws IllegalStatusChangeException {
+    public ResponseEntity<TestSessionDTO> finalizeSession(@PathVariable Long id, @AuthenticationPrincipal UserDTO user) throws IllegalStatusChangeException {
         log.info("Request to finalize session with id: {}", id);
-        TestSessionDTO session = testSessionService.finalizeSession(id);
+        TestSessionDTO session = testSessionService.finishSession(id, user);
         return ResponseEntity.ok(session);
     }
 }

@@ -24,6 +24,14 @@
                 <a class="btn btn-secondary mt-3" sec:authorize="hasAuthority('ADMIN')"
                    th:href="@{/projects/{id}/edit(id=${project.id})}" th:text="#{project.view.edit_button}">Edit
                     Project</a>
+                <form method="post" sec:authorize="hasAuthority('ADMIN')" style="display:inline;"
+                      th:action="@{/projects/{id}/delete(id=${project.id})}">
+                    <button class="btn btn-danger mt-3"
+                            onclick="return confirm('Are you sure you want to delete this project?')"
+                            th:text="#{form.delete}"
+                            type="submit">Delete
+                    </button>
+                </form>
             </div>
         </div>
         <div class="d-flex justify-content-between align-items-center mt-4 mb-3">
@@ -34,6 +42,7 @@
             <thead>
             <tr>
                 <th scope="col" th:text="#{project.view.session.id}">ID</th>
+                <th scope="col" th:text="#{form.description}">Description</th>
                 <th scope="col" th:text="#{project.view.session.tester}">Tester</th>
                 <th scope="col" th:text="#{project.view.session.status}">Status</th>
                 <th scope="col" th:text="#{project.view.session.date}">Date</th>
@@ -43,6 +52,7 @@
             <tbody>
             <tr th:each="testSession : ${sessions}">
                 <td th:text="${testSession.id}"></td>
+                <td th:text="${testSession.description}"></td>
                 <td th:text="${testSession.testerName}"></td>
                 <td><span class="badge"
                           th:classappend="${testSession.status?.name() == 'CREATED' ? 'bg-secondary' : (testSession.status?.name() == 'IN_EXECUTION' ? 'bg-primary' : (testSession.status?.name() == 'FINALIZED' ? 'bg-success' : 'bg-warning'))}"
@@ -55,7 +65,7 @@
                 </td>
             </tr>
             <tr th:if="${sessions.isEmpty()}">
-                <td class="text-center" colspan="5" th:text="#{project.view.no_sessions}">No test sessions found for
+                <td class="text-center" colspan="6" th:text="#{project.view.no_sessions}">No test sessions found for
                     this project.
                 </td>
             </tr>

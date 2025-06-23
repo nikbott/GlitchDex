@@ -172,18 +172,4 @@ public class UserService {
         }
         return null;
     }
-
-    /**
-     * Saves a user, either by creating a new one or updating an existing one.
-     *
-     * @param userRequest The request object with the user details.
-     */
-    @Transactional
-    public void save(UserRequest userRequest) {
-        if (userRequest.getId() == null) {
-            create(userRequest);
-        } else {
-            update(userRequest.getId(), userRequest);
-        }
-    }
 }

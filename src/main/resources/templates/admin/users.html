@@ -30,8 +30,9 @@
                 <td>
                     <a class="btn btn-sm btn-info" th:href="@{/admin/users/edit/{id}(id=${user.id})}"
                        th:text="#{form.edit}">Edit</a>
-                    <a class="btn btn-sm btn-danger" th:href="@{/admin/users/delete/{id}(id=${user.id})}"
-                       th:text="#{form.delete}">Delete</a>
+                    <form method="post" style="display:inline;" th:action="@{/admin/users/delete/{id}(id=${user.id})}">
+                        <button class="btn btn-sm btn-danger" th:text="#{form.delete}" type="submit">Delete</button>
+                    </form>
                 </td>
             </tr>
             </tbody>

@@ -1,5 +1,6 @@
 package br.ufscar.glitchdex.controller.web;
 
+import br.ufscar.glitchdex.config.Constants;
 import br.ufscar.glitchdex.dto.UserRequest;
 import br.ufscar.glitchdex.exception.ResourceNotFoundException;
 import br.ufscar.glitchdex.mapper.UserMapper;
@@ -23,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/admin")
 @RequiredArgsConstructor
-@PreAuthorize("hasAuthority('ADMIN')")
+@PreAuthorize(Constants.HAS_AUTHORITY_ADMIN)
 public class AdminController {
 
     private static final Logger log = LoggerFactory.getLogger(AdminController.class);
@@ -71,7 +72,11 @@ public class AdminController {
             log.warn("Validation errors while saving user: {}", result.getAllErrors());
             return "admin/user-form";
         }
-        userService.save(userRequest);
+        if (userRequest.getId() == null) {
+            userService.create(userRequest);
+        } else {
+            userService.update(userRequest.getId(), userRequest);
+        }
         log.info("User with email: {} saved successfully", userRequest.getEmail());
         return "redirect:/admin/users";
     }
@@ -99,7 +104,7 @@ public class AdminController {
      * @param id The ID of the user to delete.
      * @return A redirect to the user list page.
      */
-    @GetMapping("/users/delete/{id}")
+    @PostMapping("/users/delete/{id}")
     public String deleteUser(@PathVariable Long id) {
         log.info("Admin request to delete user with id: {}", id);
         userService.delete(id);

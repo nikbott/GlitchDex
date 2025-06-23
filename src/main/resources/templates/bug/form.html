@@ -69,7 +69,7 @@
                 Submit
             </button>
             <a class="btn btn-secondary"
-               th:href="@{/projects/{projectId}/sessions/{id}(projectId=${session.projectId}, id=${session.id})}"
+               th:href="@{/projects/{projectId}/sessions/{sessionId}(projectId=${session.projectId}, sessionId=${session.id})}"
                th:text="#{form.cancel}">Cancel</a>
         </form>
     </div>

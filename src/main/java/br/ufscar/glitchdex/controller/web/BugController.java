@@ -1,11 +1,14 @@
 package br.ufscar.glitchdex.controller.web;
 
+import br.ufscar.glitchdex.config.Constants;
 import br.ufscar.glitchdex.dto.BugDTO;
 import br.ufscar.glitchdex.dto.BugRequest;
 import br.ufscar.glitchdex.dto.TestSessionDTO;
 import br.ufscar.glitchdex.dto.UserDTO;
 import br.ufscar.glitchdex.exception.IllegalStatusChangeException;
+import br.ufscar.glitchdex.mapper.BugMapper;
 import br.ufscar.glitchdex.service.BugService;
+import br.ufscar.glitchdex.service.FileStorageService;
 import br.ufscar.glitchdex.service.TestSessionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -13,12 +16,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Controller
 @RequestMapping("/bugs")
@@ -28,6 +35,8 @@ public class BugController {
     private static final Logger log = LoggerFactory.getLogger(BugController.class);
     private final BugService bugService;
     private final TestSessionService testSessionService;
+    private final FileStorageService fileStorageService;
+    private final BugMapper bugMapper;
     private final MessageSource messageSource;
 
     @GetMapping("/new")
@@ -43,6 +52,7 @@ public class BugController {
     }
 
     @PostMapping
+    @PreAuthorize(Constants.HAS_ANY_AUTHORITY_ADMIN_TESTER)
     public String createBug(@Valid @ModelAttribute("bugRequest") BugRequest bugRequest,
                             BindingResult result,
                             @RequestParam(value = "attachment", required = false) MultipartFile[] attachments,
@@ -62,8 +72,17 @@ public class BugController {
             return "bug/form";
         }
 
+        List<String> attachmentFilenames = new ArrayList<>();
+        if (attachments != null) {
+            for (MultipartFile attachment : attachments) {
+                if (!attachment.isEmpty()) {
+                    attachmentFilenames.add(fileStorageService.store(attachment));
+                }
+            }
+        }
+
         log.info("User {} is creating a new bug for test session: {}", user.getEmail(), bugRequest.getTestSessionId());
-        BugDTO createdBug = bugService.create(bugRequest, user, attachments);
+        BugDTO createdBug = bugService.create(bugRequest, user, attachmentFilenames);
         log.info("Bug created successfully with id: {}", createdBug.getId());
         redirectAttributes.addFlashAttribute("successMessage", messageSource.getMessage("bug.form.success.create", null, LocaleContextHolder.getLocale()));
 
@@ -85,7 +104,7 @@ public class BugController {
         log.info("Request to show edit form for bug with id: {}", id);
         BugDTO bugDTO = bugService.findById(id);
         TestSessionDTO session = testSessionService.findById(bugDTO.getTestSessionId());
-        BugRequest bugRequest = bugService.toBugRequest(bugDTO);
+        BugRequest bugRequest = bugMapper.toBugRequest(bugDTO);
         model.addAttribute("bugRequest", bugRequest);
         model.addAttribute("bugId", id);
         model.addAttribute("isEditMode", true);
@@ -94,6 +113,7 @@ public class BugController {
     }
 
     @PostMapping("/{id}/edit")
+    @PreAuthorize(Constants.HAS_ANY_AUTHORITY_ADMIN_TESTER)
     public String updateBug(@PathVariable Long id,
                             @Valid @ModelAttribute("bugRequest") BugRequest bugRequest,
                             BindingResult result,
@@ -113,7 +133,16 @@ public class BugController {
             return "bug/form";
         }
 
-        bugService.update(id, bugRequest, attachments);
+        List<String> newAttachmentFilenames = new ArrayList<>();
+        if (attachments != null) {
+            for (MultipartFile attachment : attachments) {
+                if (!attachment.isEmpty()) {
+                    newAttachmentFilenames.add(fileStorageService.store(attachment));
+                }
+            }
+        }
+
+        bugService.update(id, bugRequest, newAttachmentFilenames);
         redirectAttributes.addFlashAttribute("successMessage", messageSource.getMessage("bug.form.success.update", null, LocaleContextHolder.getLocale()));
         log.info("Bug with id: {} updated successfully", id);
         return "redirect:/bugs/" + id;
@@ -121,6 +150,7 @@ public class BugController {
 
 
     @PostMapping("/{id}/delete")
+    @PreAuthorize(Constants.HAS_ANY_AUTHORITY_ADMIN_TESTER)
     public String deleteBug(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         log.info("Request to delete bug with id: {}", id);
         Long testSessionId = bugService.delete(id);

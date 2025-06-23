@@ -17,7 +17,6 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,6 +33,7 @@ public class BugService {
     private final BugMapper bugMapper;
     private final FileStorageService fileStorageService;
     private final MessageSource messageSource;
+    private final TestSessionStateService testSessionStateService;
 
     public BugDTO findById(Long id) {
         log.info("Finding bug with id: {}", id);
@@ -50,28 +50,24 @@ public class BugService {
     }
 
     @Transactional
-    public BugDTO create(BugRequest bugRequest, UserDTO reporterDto, MultipartFile[] attachments) throws IllegalStatusChangeException {
+    public BugDTO create(BugRequest bugRequest, UserDTO reporterDto, List<String> attachmentFilenames) throws IllegalStatusChangeException {
         log.info("User {} is creating a bug for test session {}", reporterDto.getEmail(), bugRequest.getTestSessionId());
         TestSession testSession = testSessionRepository.findById(bugRequest.getTestSessionId())
                 .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.session.not_found", new Object[]{bugRequest.getTestSessionId()}, LocaleContextHolder.getLocale())));
 
-        TestSessionStateMachine stateMachine = new TestSessionStateMachine(testSession, messageSource);
-        stateMachine.canReportBug();
+        testSessionStateService.canReportBug(testSession);
 
         User reporter = userRepository.findById(reporterDto.getId())
                 .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.user.not_found", new Object[]{reporterDto.getId()}, LocaleContextHolder.getLocale())));
 
         Bug bug = this.buildBugFromRequest(bugRequest, reporter, testSession);
 
-        if (attachments != null) {
-            for (MultipartFile attachment : attachments) {
-                if (!attachment.isEmpty()) {
-                    String filename = fileStorageService.store(attachment);
-                    BugAttachment bugAttachment = new BugAttachment();
-                    bugAttachment.setFilename(filename);
-                    bugAttachment.setBug(bug);
-                    bug.getAttachments().add(bugAttachment);
-                }
+        if (attachmentFilenames != null) {
+            for (String filename : attachmentFilenames) {
+                BugAttachment bugAttachment = new BugAttachment();
+                bugAttachment.setFilename(filename);
+                bugAttachment.setBug(bug);
+                bug.getAttachments().add(bugAttachment);
             }
         }
 
@@ -94,7 +90,7 @@ public class BugService {
     }
 
     @Transactional
-    public BugDTO update(Long id, BugRequest bugRequest, MultipartFile[] newAttachments) {
+    public BugDTO update(Long id, BugRequest bugRequest, List<String> newAttachmentFilenames) {
         log.info("Updating bug with id: {}", id);
         Bug bug = bugRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.bug.not_found", new Object[]{id}, LocaleContextHolder.getLocale())));
@@ -106,18 +102,15 @@ public class BugService {
         bug.setSeverity(bugRequest.getSeverity());
         bug.setPriority(bugRequest.getPriority());
 
-        if (newAttachments != null) {
-            for (MultipartFile attachment : newAttachments) {
-                if (!attachment.isEmpty()) {
-                    if (bug.getAttachments().size() >= 5) {
-                        throw new IllegalStateException(messageSource.getMessage("bug.form.error.max_files", null, LocaleContextHolder.getLocale()));
-                    }
-                    String filename = fileStorageService.store(attachment);
-                    BugAttachment bugAttachment = new BugAttachment();
-                    bugAttachment.setFilename(filename);
-                    bugAttachment.setBug(bug);
-                    bug.getAttachments().add(bugAttachment);
+        if (newAttachmentFilenames != null) {
+            for (String filename : newAttachmentFilenames) {
+                if (bug.getAttachments().size() >= 5) {
+                    throw new IllegalStateException(messageSource.getMessage("bug.form.error.max_files", null, LocaleContextHolder.getLocale()));
                 }
+                BugAttachment bugAttachment = new BugAttachment();
+                bugAttachment.setFilename(filename);
+                bugAttachment.setBug(bug);
+                bug.getAttachments().add(bugAttachment);
             }
         }
 
@@ -140,18 +133,6 @@ public class BugService {
         bugRepository.deleteById(id);
         log.info("Bug with id {} deleted successfully", id);
         return testSessionId;
-    }
-
-    public BugRequest toBugRequest(BugDTO bugDto) {
-        BugRequest request = new BugRequest();
-        request.setTitle(bugDto.getTitle());
-        request.setDescription(bugDto.getDescription());
-        request.setStepsToReproduce(bugDto.getStepsToReproduce());
-        request.setStatus(bugDto.getStatus());
-        request.setSeverity(bugDto.getSeverity());
-        request.setPriority(bugDto.getPriority());
-        request.setTestSessionId(bugDto.getTestSessionId());
-        return request;
     }
 
     public List<Bug> findRecentBugs() {

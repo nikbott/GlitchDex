@@ -1,8 +1,6 @@
 package br.ufscar.glitchdex.controller.web;
 
 import br.ufscar.glitchdex.config.Constants;
-import br.ufscar.glitchdex.domain.SessionStatus;
-import br.ufscar.glitchdex.domain.TestSessionStateMachine;
 import br.ufscar.glitchdex.dto.TestSessionDTO;
 import br.ufscar.glitchdex.dto.TestSessionRequest;
 import br.ufscar.glitchdex.dto.UserDTO;
@@ -25,7 +23,6 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Controller
@@ -47,9 +44,8 @@ public class TestSessionViewController {
         var strategies = strategyService.findAll();
 
         TestSessionRequest testSessionRequest = new TestSessionRequest();
-        testSessionRequest.setProjectId(projectId); // Set projectId on the request object
+        testSessionRequest.setProjectId(projectId);
         model.addAttribute("testSessionRequest", testSessionRequest);
-
         model.addAttribute("strategies", strategies);
         model.addAttribute("project", projectDto);
         return "session/form";
@@ -60,7 +56,7 @@ public class TestSessionViewController {
     public String createTestSession(@PathVariable Long projectId,
                                     @Valid @ModelAttribute("testSessionRequest") TestSessionRequest request,
                                     BindingResult result,
-                                    UserDTO currentUser,
+                                    @AuthenticationPrincipal UserDTO currentUser,
                                     Model model) {
         log.info("Request from user {} to create a new session for project with id: {}", currentUser.getEmail(), projectId);
         if (result.hasErrors()) {
@@ -97,7 +93,7 @@ public class TestSessionViewController {
                                     @PathVariable Long id,
                                     @Valid @ModelAttribute("testSessionRequest") TestSessionRequest request,
                                     BindingResult result,
-                                    UserDTO currentUser,
+                                    @AuthenticationPrincipal UserDTO currentUser,
                                     Model model,
                                     RedirectAttributes redirectAttributes) {
         log.info("Request from user {} to update session with id: {}", currentUser.getEmail(), id);
@@ -139,15 +135,8 @@ public class TestSessionViewController {
                                @PathVariable Long id,
                                @AuthenticationPrincipal UserDTO user,
                                RedirectAttributes attr) {
-        var session = testSessionService.findByIdEntity(id);
-        testSessionService.verifyOwnership(session.getId(), user.getId());
-
         try {
-            TestSessionStateMachine machine = new TestSessionStateMachine(session, messageSource);
-            machine.startSession();
-            session.setStartTimestamp(LocalDateTime.now());
-            testSessionService.save(session);
-
+            testSessionService.startSession(id, user);
             attr.addFlashAttribute("success", messageSource.getMessage("session.form.success.start", null, LocaleContextHolder.getLocale()));
         } catch (IllegalStatusChangeException e) {
             attr.addFlashAttribute("error", messageSource.getMessage("session.form.error.start", new Object[]{e.getMessage()}, LocaleContextHolder.getLocale()));
@@ -161,10 +150,13 @@ public class TestSessionViewController {
     public String finishSession(@PathVariable Long projectId,
                                 @PathVariable Long id,
                                 @AuthenticationPrincipal UserDTO user,
-                                RedirectAttributes attr) throws IllegalStatusChangeException {
-        testSessionService.verifyOwnership(id, user.getId());
-        testSessionService.updateFinish(id, LocalDateTime.now(), SessionStatus.FINALIZED);
-        attr.addFlashAttribute("success", messageSource.getMessage("session.form.success.finish", null, LocaleContextHolder.getLocale()));
+                                RedirectAttributes attr) {
+        try {
+            testSessionService.finishSession(id, user);
+            attr.addFlashAttribute("success", messageSource.getMessage("session.form.success.finish", null, LocaleContextHolder.getLocale()));
+        } catch (IllegalStatusChangeException e) {
+            attr.addFlashAttribute("error", messageSource.getMessage("session.form.error.finish", new Object[]{e.getMessage()}, LocaleContextHolder.getLocale()));
+        }
         return "redirect:/projects/" + projectId + "/sessions/" + id;
     }
 
@@ -188,7 +180,7 @@ public class TestSessionViewController {
         log.info("Listando sessões do projeto {}", projectId);
         projectService.verifyUserAssociation(currentUser.getId(), projectId);
 
-        List<TestSessionDTO> sessions = testSessionService.findByStrategyProject(projectId);
+        List<TestSessionDTO> sessions = testSessionService.findByProjectId(projectId);
         model.addAttribute("sessions", sessions);
         model.addAttribute("projectId", projectId);
         return "session/list";
@@ -200,7 +192,7 @@ public class TestSessionViewController {
 
         testSessionService.updateExpiredSessionsByProject(projectId);
 
-        model.addAttribute("testSession", testSessionService.findById(id)); // ← Mudança aqui
+        model.addAttribute("testSession", testSessionService.findById(id));
         model.addAttribute("project", projectService.findById(projectId));
         return "session/view";
     }

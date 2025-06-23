@@ -3,6 +3,7 @@ package br.ufscar.glitchdex.mapper;
 import br.ufscar.glitchdex.domain.Bug;
 import br.ufscar.glitchdex.domain.BugAttachment;
 import br.ufscar.glitchdex.dto.BugDTO;
+import br.ufscar.glitchdex.dto.BugRequest;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
@@ -21,6 +22,8 @@ public interface BugMapper {
     BugDTO toBugDTO(Bug bug);
 
     List<BugDTO> toBugDTOs(List<Bug> bugs);
+
+    BugRequest toBugRequest(BugDTO bugDTO);
 
     @Named("attachmentsToFilenames")
     default Set<String> attachmentsToFilenames(Set<BugAttachment> attachments) {

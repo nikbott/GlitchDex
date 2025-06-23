@@ -95,4 +95,13 @@ public class ProjectViewController {
         log.info("Project with id: {} updated successfully", id);
         return "redirect:/projects/" + id;
     }
+
+    @PostMapping("/{id}/delete")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public String deleteProject(@PathVariable Long id) {
+        log.info("Request to delete project with id: {}", id);
+        projectService.delete(id);
+        log.info("Project with id: {} deleted successfully", id);
+        return "redirect:/home";
+    }
 }

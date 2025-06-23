@@ -131,7 +131,7 @@ public class ProjectService {
 
         List<User> members = new ArrayList<>(userRepository.findAllById(projectRequest.getMemberIds()));
 
-        if (!members.contains(creatorUser)) {
+        if (members.stream().noneMatch(member -> member.getId().equals(creatorUser.getId()))) {
             members.add(creatorUser);
         }
 

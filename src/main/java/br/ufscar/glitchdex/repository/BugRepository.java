@@ -1,6 +1,7 @@
 package br.ufscar.glitchdex.repository;
 
 import br.ufscar.glitchdex.domain.*;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,6 +34,7 @@ public interface BugRepository extends JpaRepository<Bug, Long> {
      * @param title The title of the bug.
      * @return an Optional containing the bug if found.
      */
+    @EntityGraph(attributePaths = {"reporter", "testSession"})
     Optional<Bug> findByTitle(String title);
 
     /**
@@ -41,6 +43,7 @@ public interface BugRepository extends JpaRepository<Bug, Long> {
      * @param title The string to search for in bug titles.
      * @return a list of matching bugs.
      */
+    @EntityGraph(attributePaths = {"reporter", "testSession"})
     List<Bug> findByTitleContainingIgnoreCase(String title);
 
     /**
@@ -49,6 +52,7 @@ public interface BugRepository extends JpaRepository<Bug, Long> {
      * @param status The status of the bugs to find.
      * @return a list of bugs with the specified status.
      */
+    @EntityGraph(attributePaths = {"reporter", "testSession"})
     List<Bug> findByStatus(BugStatus status);
 
     /**
@@ -57,6 +61,7 @@ public interface BugRepository extends JpaRepository<Bug, Long> {
      * @param priority The priority of the bugs to find.
      * @return a list of bugs with the specified priority.
      */
+    @EntityGraph(attributePaths = {"reporter", "testSession"})
     List<Bug> findByPriority(BugPriority priority);
 
     /**
@@ -65,6 +70,7 @@ public interface BugRepository extends JpaRepository<Bug, Long> {
      * @param severity The severity of the bugs to find.
      * @return a list of bugs with the specified severity.
      */
+    @EntityGraph(attributePaths = {"reporter", "testSession"})
     List<Bug> findBySeverity(BugSeverity severity);
 
     /**
@@ -73,6 +79,7 @@ public interface BugRepository extends JpaRepository<Bug, Long> {
      * @param date The date to compare against.
      * @return a list of bugs reported after the specified date.
      */
+    @EntityGraph(attributePaths = {"reporter", "testSession"})
     List<Bug> findByReportDateAfter(LocalDateTime date);
 
     /**
@@ -81,5 +88,6 @@ public interface BugRepository extends JpaRepository<Bug, Long> {
      * @param testSession The test session to find bugs for.
      * @return a list of bugs for the given test session.
      */
+    @EntityGraph(attributePaths = {"reporter", "testSession"})
     List<Bug> findByTestSession(TestSession testSession);
 }
