@@ -25,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 @Controller
@@ -33,6 +34,8 @@ import java.util.List;
 public class BugController {
 
     private static final Logger log = LoggerFactory.getLogger(BugController.class);
+    private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList("image/jpeg", "image/png", "image/gif", "video/mp4", "video/quicktime", "text/plain");
+    private static final long MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
     private final BugService bugService;
     private final TestSessionService testSessionService;
     private final FileStorageService fileStorageService;
@@ -60,9 +63,7 @@ public class BugController {
                             RedirectAttributes redirectAttributes,
                             Model model) throws IllegalStatusChangeException {
 
-        if (attachments != null && attachments.length > 5) {
-            result.rejectValue("attachment", "error.bugRequest", messageSource.getMessage("bug.form.error.max_files", null, LocaleContextHolder.getLocale()));
-        }
+        validateAttachments(attachments, result);
 
         if (result.hasErrors()) {
             log.warn("Validation errors occurred during bug creation for test session: {}", bugRequest.getTestSessionId());
@@ -121,9 +122,8 @@ public class BugController {
                             RedirectAttributes redirectAttributes,
                             Model model) {
         log.info("Request to update bug with id: {}", id);
-        if (attachments != null && attachments.length > 5) {
-            result.rejectValue("attachment", "error.bugRequest", messageSource.getMessage("bug.form.error.max_files", null, LocaleContextHolder.getLocale()));
-        }
+        validateAttachments(attachments, result);
+
         if (result.hasErrors()) {
             log.warn("Validation errors while updating bug: {}", result.getAllErrors());
             TestSessionDTO session = testSessionService.findById(bugRequest.getTestSessionId());
@@ -158,5 +158,23 @@ public class BugController {
         redirectAttributes.addFlashAttribute("successMessage", messageSource.getMessage("bug.form.success.delete", null, LocaleContextHolder.getLocale()));
         log.info("Bug with id: {} deleted successfully", id);
         return "redirect:/projects/" + session.getProjectId() + "/sessions/" + testSessionId;
+    }
+
+    private void validateAttachments(MultipartFile[] attachments, BindingResult result) {
+        if (attachments != null) {
+            if (attachments.length > 5) {
+                result.rejectValue("attachment", "error.bugRequest", messageSource.getMessage("bug.form.error.max_files", null, LocaleContextHolder.getLocale()));
+            }
+            for (MultipartFile attachment : attachments) {
+                if (!attachment.isEmpty()) {
+                    if (!ALLOWED_CONTENT_TYPES.contains(attachment.getContentType())) {
+                        result.rejectValue("attachment", "error.bugRequest", messageSource.getMessage("bug.form.error.invalid_file_type", null, LocaleContextHolder.getLocale()));
+                    }
+                    if (attachment.getSize() > MAX_FILE_SIZE) {
+                        result.rejectValue("attachment", "error.bugRequest", messageSource.getMessage("bug.form.error.file_size_exceeded", null, LocaleContextHolder.getLocale()));
+                    }
+                }
+            }
+        }
     }
 }
