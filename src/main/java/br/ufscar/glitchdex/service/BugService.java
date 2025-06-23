@@ -19,8 +19,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,7 +52,7 @@ public class BugService {
     }
 
     @Transactional
-    public BugDTO create(BugRequest bugRequest, UserDTO reporterDto, MultipartFile[] attachments) throws IllegalStatusChangeException {
+    public BugDTO create(BugRequest bugRequest, UserDTO reporterDto, MultipartFile[] attachments) throws IllegalStatusChangeException, ResourceNotFoundException, IOException {
         log.info("User {} is creating a bug for test session {}", reporterDto.getEmail(), bugRequest.getTestSessionId());
         TestSession testSession = testSessionRepository.findById(bugRequest.getTestSessionId())
                 .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.session.not_found", new Object[]{bugRequest.getTestSessionId()}, LocaleContextHolder.getLocale())));
@@ -94,7 +96,7 @@ public class BugService {
     }
 
     @Transactional
-    public BugDTO update(Long id, BugRequest bugRequest, MultipartFile[] newAttachments) {
+    public BugDTO update(Long id, BugRequest bugRequest, MultipartFile[] newAttachments) throws ResourceNotFoundException, IllegalStateException, IOException {
         log.info("Updating bug with id: {}", id);
         Bug bug = bugRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.bug.not_found", new Object[]{id}, LocaleContextHolder.getLocale())));
@@ -127,7 +129,7 @@ public class BugService {
     }
 
     @Transactional
-    public Long delete(Long id) {
+    public Long delete(Long id) throws IOException { // <-- Adicionado 'throws IOException' aqui
         log.info("Deleting bug with id: {}", id);
         Bug bug = bugRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.bug.not_found", new Object[]{id}, LocaleContextHolder.getLocale())));
@@ -140,6 +142,34 @@ public class BugService {
         bugRepository.deleteById(id);
         log.info("Bug with id {} deleted successfully", id);
         return testSessionId;
+    }
+
+    /**
+     * Deletes a specific attachment from a bug.
+     * Removes the physical file and the database entry for the attachment.
+     *
+     * @param bugId The ID of the bug to which the attachment belongs.
+     * @param attachmentId The ID of the attachment to be deleted.
+     * @throws ResourceNotFoundException if the bug or attachment is not found.
+     */
+    @Transactional
+    public void deleteAttachment(Long bugId, Long attachmentId) throws ResourceNotFoundException, IOException {
+        log.info("Attempting to delete attachment {} from bug {}", attachmentId, bugId);
+        Bug bug = bugRepository.findById(bugId)
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.bug.not_found", new Object[]{bugId}, LocaleContextHolder.getLocale())));
+
+        Optional<BugAttachment> optionalAttachment = bug.getAttachments().stream()
+                .filter(att -> att.getId().equals(attachmentId))
+                .findFirst();
+
+        BugAttachment attachmentToDelete = optionalAttachment
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.attachment.not_found_for_bug", new Object[]{attachmentId, bugId}, LocaleContextHolder.getLocale())));
+
+        fileStorageService.delete(attachmentToDelete.getFilename());
+        log.info("Physical file {} deleted successfully for attachment {}", attachmentToDelete.getFilename(), attachmentId);
+
+        bug.getAttachments().remove(attachmentToDelete);
+        log.info("Attachment {} removed from bug {} collection. OrphanRemoval will handle DB deletion.", attachmentId, bugId);
     }
 
     public BugRequest toBugRequest(BugDTO bugDto) {
