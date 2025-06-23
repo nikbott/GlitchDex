@@ -39,7 +39,6 @@ public class TestSessionService {
     private final UserRepository userRepository;
     private final TestSessionMapper testSessionMapper;
     private final MessageSource messageSource;
-    private final TestSessionStateService testSessionStateService;
 
     public List<TestSessionDTO> findByProjectId(Long projectId) {
         log.info("Finding test sessions for project with id: {}", projectId);
@@ -97,7 +96,8 @@ public class TestSessionService {
         TestSession testSession = testSessionRepository.findByIdAndTester(id, user)
                 .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.session.not_found", new Object[]{id}, LocaleContextHolder.getLocale())));
 
-        testSessionStateService.canUpdateSession(testSession);
+        TestSessionStateMachine machine = new TestSessionStateMachine(testSession);
+        machine.canUpdateSession();
 
         Strategy strategy = strategyRepository.findById(testSessionRequest.getStrategyId())
                 .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.strategy.not_found", new Object[]{testSessionRequest.getStrategyId()}, LocaleContextHolder.getLocale())));
@@ -126,7 +126,9 @@ public class TestSessionService {
         verifyOwnership(id, user.getId());
         log.info("Starting test session with id: {}", id);
         TestSession testSession = findByIdEntity(id);
-        testSessionStateService.startSession(testSession);
+        TestSessionStateMachine machine = new TestSessionStateMachine(testSession);
+        machine.startSession();
+        testSession.setStartTimestamp(LocalDateTime.now());
         TestSessionDTO dto = testSessionMapper.toTestSessionDTO(save(testSession));
         log.info("Test session with id {} started successfully", id);
         return dto;
@@ -137,7 +139,9 @@ public class TestSessionService {
         verifyOwnership(id, user.getId());
         log.info("Finalizing test session with id: {}", id);
         TestSession testSession = findByIdEntity(id);
-        testSessionStateService.finishSession(testSession);
+        TestSessionStateMachine machine = new TestSessionStateMachine(testSession);
+        machine.finalizeSession();
+        testSession.setFinalizationTimestamp(LocalDateTime.now());
         TestSessionDTO dto = testSessionMapper.toTestSessionDTO(save(testSession));
         log.info("Test session with id {} finalized successfully", id);
         return dto;
@@ -197,7 +201,8 @@ public class TestSessionService {
 
     private boolean finalizeAndSaveSilently(TestSession session, LocalDateTime now) {
         try {
-            testSessionStateService.finishSession(session);
+            TestSessionStateMachine machine = new TestSessionStateMachine(session);
+            machine.finalizeSession();
             session.setFinalizationTimestamp(now);
             save(session);
             log.debug("Sessão {} expirada e finalizada automaticamente", session.getId());
@@ -218,5 +223,10 @@ public class TestSessionService {
 
         LocalDateTime expirationTime = referenceTime.plusMinutes(session.getDurationInMinutes());
         return now.isAfter(expirationTime);
+    }
+
+    public void canReportBug(TestSession session) throws IllegalStatusChangeException {
+        TestSessionStateMachine machine = new TestSessionStateMachine(session);
+        machine.canReportBug();
     }
 }

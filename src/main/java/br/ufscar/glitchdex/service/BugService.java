@@ -33,7 +33,7 @@ public class BugService {
     private final BugMapper bugMapper;
     private final FileStorageService fileStorageService;
     private final MessageSource messageSource;
-    private final TestSessionStateService testSessionStateService;
+    private final TestSessionService testSessionService;
 
     public BugDTO findById(Long id) {
         log.info("Finding bug with id: {}", id);
@@ -55,7 +55,7 @@ public class BugService {
         TestSession testSession = testSessionRepository.findById(bugRequest.getTestSessionId())
                 .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.session.not_found", new Object[]{bugRequest.getTestSessionId()}, LocaleContextHolder.getLocale())));
 
-        testSessionStateService.canReportBug(testSession);
+        testSessionService.canReportBug(testSession);
 
         User reporter = userRepository.findById(reporterDto.getId())
                 .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.user.not_found", new Object[]{reporterDto.getId()}, LocaleContextHolder.getLocale())));
