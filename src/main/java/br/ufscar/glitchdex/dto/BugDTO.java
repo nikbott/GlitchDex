@@ -31,7 +31,7 @@ public class BugDTO {
     private Long reporterId;
     private String reporterName;
 
-    // ALTERAÇÃO AQUI: Adicionar projectId
+  
     private Long projectId;
 
 
