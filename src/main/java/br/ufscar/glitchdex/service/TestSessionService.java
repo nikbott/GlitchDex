@@ -11,7 +11,6 @@ import br.ufscar.glitchdex.repository.ProjectRepository;
 import br.ufscar.glitchdex.repository.StrategyRepository;
 import br.ufscar.glitchdex.repository.TestSessionRepository;
 import br.ufscar.glitchdex.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +18,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -46,6 +46,7 @@ public class TestSessionService {
      * @param projectId The ID of the project.
      * @return A list of TestSessionDTOs.
      */
+    @Transactional(readOnly = true)
     public List<TestSessionDTO> findByProjectId(Long projectId) {
         log.info("Finding test sessions for project with id: {}", projectId);
         Project project = projectRepository.findById(projectId)
@@ -59,6 +60,7 @@ public class TestSessionService {
      * @param strategy The strategy to search by.
      * @return A list of TestSessionDTOs.
      */
+    @Transactional(readOnly = true)
     public List<TestSessionDTO> findByStrategy(Strategy strategy) {
         log.info("Finding test sessions for strategy with id: {}", strategy.getId());
         return testSessionMapper.toTestSessionDTOs(testSessionRepository.findByStrategy(strategy));
@@ -70,6 +72,7 @@ public class TestSessionService {
      * @param strategyId The ID of the strategy.
      * @return A list of TestSessionDTOs.
      */
+    @Transactional(readOnly = true)
     public List<TestSessionDTO> findByStrategyId(Long strategyId) {
         log.info("Finding test sessions for strategy with id: {}", strategyId);
         Strategy strategy = strategyRepository.findById(strategyId)
@@ -83,6 +86,7 @@ public class TestSessionService {
      * @param id The ID of the test session.
      * @return The TestSessionDTO for the requested session.
      */
+    @Transactional(readOnly = true)
     public TestSessionDTO findById(Long id) {
         log.info("Finding test session with id: {}", id);
         TestSession session = testSessionRepository.findById(id)

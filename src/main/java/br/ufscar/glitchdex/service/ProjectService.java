@@ -11,7 +11,6 @@ import br.ufscar.glitchdex.mapper.ProjectMapper;
 import br.ufscar.glitchdex.repository.ProjectRepository;
 import br.ufscar.glitchdex.repository.TestSessionRepository;
 import br.ufscar.glitchdex.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -23,6 +22,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -75,6 +75,7 @@ public class ProjectService {
      * @param id The ID of the project.
      * @return The ProjectDTO.
      */
+    @Transactional(readOnly = true)
     public ProjectDTO findById(Long id) {
         log.info("Finding project with id: {}", id);
         Project project = getProjectById(id);
@@ -86,6 +87,7 @@ public class ProjectService {
      *
      * @return A list of all ProjectDTOs.
      */
+    @Transactional(readOnly = true)
     public List<ProjectDTO> findAll() {
         log.info("Finding all projects");
         return projectMapper.toProjectDTOs(projectRepository.findAll());
@@ -99,6 +101,7 @@ public class ProjectService {
      * @param order   The sort order.
      * @return A list of ProjectDTOs.
      */
+    @Transactional(readOnly = true)
     public List<ProjectDTO> findByMember(UserDTO userDto, String sort, String order) {
         log.info("Finding projects for member {} with sort {} and order {}", userDto.getEmail(), sort, order);
         User user = getUserById(userDto.getId());
@@ -113,6 +116,7 @@ public class ProjectService {
      * @param name The name to search for.
      * @return A list of ProjectDTOs matching the search query.
      */
+    @Transactional(readOnly = true)
     public List<ProjectDTO> searchByName(String name) {
         log.info("Searching for projects with name containing: {}", name);
         return projectMapper.toProjectDTOs(projectRepository.findByNameContainingIgnoreCase(name));

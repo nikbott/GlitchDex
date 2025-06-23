@@ -9,7 +9,6 @@ import br.ufscar.glitchdex.exception.PasswordValidationException;
 import br.ufscar.glitchdex.exception.ResourceNotFoundException;
 import br.ufscar.glitchdex.mapper.UserMapper;
 import br.ufscar.glitchdex.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +16,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -41,6 +41,7 @@ public class UserService {
      * @param id The ID of the user.
      * @return An Optional containing the UserDTO if found.
      */
+    @Transactional(readOnly = true)
     public Optional<UserDTO> findById(Long id) {
         log.info("Finding user by id: {}", id);
         return userRepository.findById(id).map(userMapper::toUserDTO);
@@ -52,6 +53,7 @@ public class UserService {
      * @param email The email of the user.
      * @return An Optional containing the User if found.
      */
+    @Transactional(readOnly = true)
     public Optional<User> findByEmail(String email) {
         log.info("Finding user by email: {}", email);
         return userRepository.findByEmail(email);
@@ -63,6 +65,7 @@ public class UserService {
      * @param email The email of the user.
      * @return An Optional containing the UserDTO if found.
      */
+    @Transactional(readOnly = true)
     public Optional<UserDTO> findByEmailDTO(String email) {
         log.info("Finding user DTO by email: {}", email);
         return userRepository.findByEmail(email).map(userMapper::toUserDTO);
@@ -73,6 +76,7 @@ public class UserService {
      *
      * @return A list of all UserDTOs.
      */
+    @Transactional(readOnly = true)
     public List<UserDTO> findAll() {
         log.info("Finding all users");
         return userMapper.toUserDTOs(userRepository.findAll());
