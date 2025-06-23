@@ -1,6 +1,7 @@
 package br.ufscar.glitchdex.service;
 
 import br.ufscar.glitchdex.domain.Project;
+import br.ufscar.glitchdex.domain.TestSession;
 import br.ufscar.glitchdex.domain.User;
 import br.ufscar.glitchdex.dto.ProjectDTO;
 import br.ufscar.glitchdex.dto.ProjectRequest;
@@ -8,6 +9,7 @@ import br.ufscar.glitchdex.dto.UserDTO;
 import br.ufscar.glitchdex.exception.ResourceNotFoundException;
 import br.ufscar.glitchdex.mapper.ProjectMapper;
 import br.ufscar.glitchdex.repository.ProjectRepository;
+import br.ufscar.glitchdex.repository.TestSessionRepository;
 import br.ufscar.glitchdex.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
@@ -41,6 +43,7 @@ public class ProjectService {
     private final ProjectMapper projectMapper;
     private final UserService userService;
     private final MessageSource messageSource;
+    private final TestSessionRepository testSessionRepository;
 
     /**
      * Retrieves a project by its ID.
@@ -218,13 +221,20 @@ public class ProjectService {
     }
 
     /**
-     * Deletes a project by its ID.
+     * Deletes a project by its ID, along with all associated test sessions.
      *
      * @param id The ID of the project to delete.
      */
     @Transactional
     public void delete(Long id) {
         log.info("Deleting project with id: {}", id);
+        Project project = getProjectById(id);
+
+        // Find and delete all associated test sessions
+        List<TestSession> sessions = testSessionRepository.findByProject(project);
+        testSessionRepository.deleteAll(sessions);
+        log.info("Deleted {} associated test sessions for project with id {}", sessions.size(), id);
+
         projectRepository.deleteById(id);
         log.info("Project with id {} deleted successfully", id);
     }
