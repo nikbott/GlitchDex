@@ -2,14 +2,16 @@
 <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title th:text="${isEditMode} ? #{project.form.edit_header} : #{project.form.title}">Project Form</title>
+    <title th:text="${projectRequest.id != null} ? #{project.form.edit_header} : #{project.form.title}">Project
+        Form</title>
 </head>
 <body>
 <section>
     <div class="container mt-4">
-        <h2 th:text="${isEditMode} ? #{project.form.edit_header} : #{project.form.header}">Create a New Project</h2>
+        <h2 th:text="${projectRequest.id != null} ? #{project.form.edit_header} : #{project.form.header}">Create a New
+            Project</h2>
         <form method="post"
-              th:action="${isEditMode} ? @{/projects/{id}(id=${projectId})} : @{/projects}"
+              th:action="${projectRequest.id != null} ? @{/projects/{id}(id=${projectId})} : @{/projects}"
               th:object="${projectRequest}">
             <div class="mb-3">
                 <label class="form-label" for="name" th:text="#{project.form.name}">Project Name</label>
@@ -33,7 +35,7 @@
             </div>
 
             <button class="btn btn-primary"
-                    th:text="${isEditMode} ? #{project.form.save_changes} : #{project.form.create}"
+                    th:text="${projectRequest.id != null} ? #{project.form.save_changes} : #{project.form.create}"
                     type="submit">Submit
             </button>
             <a class="btn btn-secondary" th:href="@{/home}" th:text="#{form.cancel}">Cancel</a>

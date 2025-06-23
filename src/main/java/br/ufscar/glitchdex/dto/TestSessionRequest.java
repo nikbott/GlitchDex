@@ -6,11 +6,10 @@ import lombok.Data;
 
 @Data
 public class TestSessionRequest {
-
     @NotNull
     @Positive
     Integer durationInMinutes;
-
+    private Long id;
     private String description;
 
     @NotNull

@@ -9,13 +9,13 @@ import br.ufscar.glitchdex.exception.ResourceNotFoundException;
 import br.ufscar.glitchdex.mapper.StrategyMapper;
 import br.ufscar.glitchdex.repository.StrategyRepository;
 import br.ufscar.glitchdex.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -41,6 +41,7 @@ public class StrategyService {
      *
      * @return A list of all StrategyDTOs.
      */
+    @Transactional(readOnly = true)
     public List<StrategyDTO> findAll() {
         log.info("Finding all strategies");
         return strategyMapper.toStrategyDTOs(strategyRepository.findAll());
@@ -53,6 +54,7 @@ public class StrategyService {
      * @return The StrategyDTO.
      * @throws ResourceNotFoundException if no strategy is found with the given ID.
      */
+    @Transactional(readOnly = true)
     public StrategyDTO findById(Long id) {
         log.info("Finding strategy with id: {}", id);
         Strategy strategy = strategyRepository.findById(id)

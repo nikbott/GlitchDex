@@ -32,7 +32,6 @@ public class ProjectViewController {
         log.info("Request to show new project form");
         model.addAttribute("projectRequest", new ProjectRequest());
         model.addAttribute("allUsers", userService.findAll());
-        model.addAttribute("isEditMode", false);
         return "project/form";
     }
 
@@ -44,7 +43,6 @@ public class ProjectViewController {
         log.info("Request to create a new project with name: {}", projectRequest.getName());
         if (result.hasErrors()) {
             log.warn("Validation errors while creating project: {}", result.getAllErrors());
-            model.addAttribute("isEditMode", false);
             return "project/form";
         }
 
@@ -74,7 +72,6 @@ public class ProjectViewController {
 
         model.addAttribute("projectRequest", projectRequest);
         model.addAttribute("allUsers", userService.findAll());
-        model.addAttribute("isEditMode", true);
         model.addAttribute("projectId", id);
         return "project/form";
     }
@@ -87,7 +84,6 @@ public class ProjectViewController {
         log.info("Request to update project with id: {}", id);
         if (result.hasErrors()) {
             log.warn("Validation errors while updating project: {}", result.getAllErrors());
-            model.addAttribute("isEditMode", true);
             model.addAttribute("projectId", id);
             return "project/form";
         }

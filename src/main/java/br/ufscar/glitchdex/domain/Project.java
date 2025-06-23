@@ -57,6 +57,12 @@ public class Project {
     private List<User> members = new ArrayList<>();
 
     /**
+     * The list of test sessions associated with this project.
+     */
+    @OneToMany(mappedBy = "project", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<TestSession> testSessions = new ArrayList<>();
+
+    /**
      * The timestamp of when the project was created.
      */
     @Column(nullable = false)
