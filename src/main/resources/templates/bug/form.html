@@ -63,6 +63,7 @@
                 <input class="form-control" id="attachment" multiple name="attachment" onchange="validateFiles(this)"
                        type="file"/>
                 <div class="form-text" th:text="#{bug.form.max_files_notice}">You can upload up to 5 files.</div>
+                <div class="text-danger" id="attachment-error" style="display: none;"></div>
             </div>
             <button class="btn btn-primary"
                     th:text="${bugRequest.id != null} ? #{form.save_changes} : #{bug.form.submit}"
@@ -77,12 +78,16 @@
     <script th:inline="javascript">
         /*<![CDATA[*/
         function validateFiles(input) {
-            if (input.files.length > 5) {
-                alert(/*[[#{bug.form.alert.max_files}]]*/ "You can only upload a maximum of 5 files.");
+            const maxFiles = 5;
+            const errorElement = document.getElementById('attachment-error');
+            if (input.files.length > maxFiles) {
+                errorElement.textContent = /*[[#{bug.form.error.max_files}]]*/ "You can only upload a maximum of 5 files.";
+                errorElement.style.display = 'block';
                 input.value = "";
+            } else {
+                errorElement.style.display = 'none';
             }
         }
-
         /*]]>*/
     </script>
 </section>
