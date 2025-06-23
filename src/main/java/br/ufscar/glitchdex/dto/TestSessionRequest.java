@@ -1,6 +1,5 @@
 package br.ufscar.glitchdex.dto;
 
-import br.ufscar.glitchdex.domain.SessionStatus;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
@@ -11,8 +10,12 @@ public class TestSessionRequest {
     @NotNull
     @Positive
     Integer durationInMinutes;
+
+    private String description;
+
     @NotNull
     private Long strategyId;
+
     @NotNull
-    private SessionStatus status;
+    private Long projectId;
 }

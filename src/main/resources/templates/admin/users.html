@@ -2,23 +2,23 @@
 <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>User Management</title>
+    <title th:text="#{admin.users.title}">User Management</title>
 </head>
 <body>
 <section>
     <div class="container">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2>User Management</h2>
-            <a class="btn btn-primary" th:href="@{/admin/users/new}">New User</a>
+            <h2 th:text="#{admin.users.title}">User Management</h2>
+            <a class="btn btn-primary" th:href="@{/admin/users/new}" th:text="#{admin.users.new_user}">New User</a>
         </div>
         <table class="table table-striped">
             <thead>
             <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Actions</th>
+                <th th:text="#{admin.users.id}">ID</th>
+                <th th:text="#{form.name}">Name</th>
+                <th th:text="#{form.email}">Email</th>
+                <th th:text="#{admin.users.role}">Role</th>
+                <th th:text="#{form.actions}">Actions</th>
             </tr>
             </thead>
             <tbody>
@@ -28,8 +28,11 @@
                 <td th:text="${user.email}"></td>
                 <td th:text="${user.role}"></td>
                 <td>
-                    <a class="btn btn-sm btn-info" th:href="@{/admin/users/edit/{id}(id=${user.id})}">Edit</a>
-                    <a class="btn btn-sm btn-danger" th:href="@{/admin/users/delete/{id}(id=${user.id})}">Delete</a>
+                    <a class="btn btn-sm btn-info" th:href="@{/admin/users/edit/{id}(id=${user.id})}"
+                       th:text="#{form.edit}">Edit</a>
+                    <form method="post" style="display:inline;" th:action="@{/admin/users/delete/{id}(id=${user.id})}">
+                        <button class="btn btn-sm btn-danger" th:text="#{form.delete}" type="submit">Delete</button>
+                    </form>
                 </td>
             </tr>
             </tbody>

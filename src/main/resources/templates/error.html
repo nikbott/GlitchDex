@@ -1,17 +1,22 @@
 <!DOCTYPE html>
-<html th:replace="fragments/layout :: layout(~{::title}, ~{::section})"
+<html th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Error</title>
+    <title th:text="#{error.title}">Error</title>
 </head>
 <body>
 <section>
-    <div class="container text-center">
-        <h1>Something went wrong!</h1>
-        <p>We're sorry, but an unexpected error has occurred.</p>
-        <p>
-            <a class="btn btn-primary" th:href="@{/home}">Go to Homepage</a>
+    <div class="container text-center mt-5">
+        <h1 class="display-1" th:text="#{error.something_wrong}">Something went wrong!</h1>
+
+        <p class="lead" th:if="${errorMessage}" th:text="${errorMessage}">
+            A specific error message.
         </p>
+        <p class="lead" th:text="#{error.unexpected}" th:unless="${errorMessage}">
+            We're sorry, but an unexpected error has occurred.
+        </p>
+
+        <a class="btn btn-primary" href="/" th:href="@{/}" th:text="#{error.go_home}">Go to Homepage</a>
     </div>
 </section>
 </body>

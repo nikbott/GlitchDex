@@ -2,37 +2,41 @@
 <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>User Form</title>
+    <title th:text="#{admin.user_form.title}">User Form</title>
 </head>
 <body>
 <section>
     <div class="container">
-        <h2 th:if="${user.id == null}">New User</h2>
-        <h2 th:unless="${user.id == null}">Edit User</h2>
-        <form method="post" th:action="@{/admin/users}" th:object="${user}">
+        <h2 th:if="${userRequest.id == null}" th:text="#{admin.user_form.new_user}">New User</h2>
+        <h2 th:text="#{admin.user_form.edit_user}" th:unless="${userRequest.id == null}">Edit User</h2>
+        <form method="post" th:action="@{/admin/users}" th:object="${userRequest}">
             <input th:field="*{id}" type="hidden"/>
             <div class="mb-3">
-                <label class="form-label" for="name">Name</label>
+                <label class="form-label" for="name" th:text="#{form.name}">Name</label>
                 <input class="form-control" id="name" required th:field="*{name}" type="text">
+                <div class="text-danger" th:errors="*{name}" th:if="${#fields.hasErrors('name')}"></div>
             </div>
             <div class="mb-3">
-                <label class="form-label" for="email">Email</label>
+                <label class="form-label" for="email" th:text="#{form.email}">Email</label>
                 <input class="form-control" id="email" required th:field="*{email}" type="email">
+                <div class="text-danger" th:errors="*{email}" th:if="${#fields.hasErrors('email')}"></div>
             </div>
             <div class="mb-3">
-                <label class="form-label" for="password">Password</label>
-                <input class="form-control" id="password" th:field="*{password}" th:required="${user.id == null}"
+                <label class="form-label" for="password" th:text="#{form.password}">Password</label>
+                <input class="form-control" id="password" th:field="*{password}" th:required="${userRequest.id == null}"
                        type="password">
+                <div class="text-danger" th:errors="*{password}" th:if="${#fields.hasErrors('password')}"></div>
             </div>
             <div class="mb-3">
-                <label class="form-label" for="role">Role</label>
+                <label class="form-label" for="role" th:text="#{admin.user_form.role}">Role</label>
                 <select class="form-select" id="role" required th:field="*{role}">
                     <option th:each="role : ${T(br.ufscar.glitchdex.domain.Role).values()}"
                             th:text="${role.name()}" th:value="${role}"></option>
                 </select>
+                <div class="text-danger" th:errors="*{role}" th:if="${#fields.hasErrors('role')}"></div>
             </div>
-            <button class="btn btn-primary" type="submit">Save</button>
-            <a class="btn btn-secondary" th:href="@{/admin/users}">Cancel</a>
+            <button class="btn btn-primary" th:text="#{form.save}" type="submit">Save</button>
+            <a class="btn btn-secondary" th:href="@{/admin/users}" th:text="#{form.cancel}">Cancel</a>
         </form>
     </div>
 </section>

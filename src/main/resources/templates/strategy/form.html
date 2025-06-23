@@ -2,28 +2,57 @@
 <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Strategy Form</title>
+    <title th:text="#{strategy.form.title}">Strategy Form</title>
 </head>
 <body>
 <section>
-    <div class="container">
-        <h2>New Strategy</h2>
-        <form method="post" th:action="@{/strategies}" th:object="${strategyRequest}">
+    <div class="container mt-4">
+        <h2 th:text="${strategy != null} ? #{strategy.form.header.edit} : #{strategy.form.header.new}">Strategy
+            Form</h2>
+
+        <form enctype="multipart/form-data"
+              method="post" th:action="${strategy != null} ? @{/strategies/{id}(id=${strategy.id})} : @{/strategies}"
+              th:object="${strategyRequest}">
+
             <div class="mb-3">
-                <label class="form-label" for="name">Name</label>
+                <label class="form-label" for="name" th:text="#{form.name}">Name</label>
                 <input class="form-control" id="name" required th:field="*{name}" type="text">
+                <div class="text-danger" th:errors="*{name}" th:if="${#fields.hasErrors('name')}"></div>
             </div>
+
             <div class="mb-3">
-                <label class="form-label" for="description">Description</label>
-                <textarea class="form-control" id="description" required rows="5" th:field="*{description}"></textarea>
+                <label class="form-label" for="description" th:text="#{form.description}">Description</label>
+                <textarea class="form-control" id="description" rows="3" th:field="*{description}"></textarea>
+                <div class="text-danger" th:errors="*{description}" th:if="${#fields.hasErrors('description')}"></div>
             </div>
+
             <div class="mb-3">
-                <label class="form-label" for="projectId">Project</label>
-                <input class="form-control" id="projectId" required th:field="*{projectId}" type="number">
-                <small>Enter a valid Project ID. A project selector can be implemented here.</small>
+                <label class="form-label" for="examples" th:text="#{form.examples}">Examples</label>
+                <textarea class="form-control" id="examples" rows="5" th:field="*{examples}"></textarea>
+                <div class="text-danger" th:errors="*{examples}" th:if="${#fields.hasErrors('examples')}"></div>
             </div>
-            <button class="btn btn-primary" type="submit">Save</button>
-            <a class="btn btn-secondary" th:href="@{/strategies}">Cancel</a>
+
+            <div class="mb-3">
+                <label class="form-label" for="tips" th:text="#{form.tips}">Tips</label>
+                <textarea class="form-control" id="tips" rows="5" th:field="*{tips}"></textarea>
+                <div class="text-danger" th:errors="*{tips}" th:if="${#fields.hasErrors('tips')}"></div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label" for="imageFile" th:text="#{form.image}">Image</label>
+                <input accept="image/*" class="form-control" id="imageFile" name="imageFile" type="file">
+            </div>
+            <div class="mb-3" th:if="${strategy != null and strategy.imageUrl != null}">
+                <p th:text="#{form.current_image}">Current Image:</p>
+                <picture>
+                    <source th:if="${strategy.imageUrl}" th:srcset="@{${strategy.imageUrl}}" type="image/webp">
+                    <img alt="Current Image" class="img-thumbnail" width="200"/>
+                </picture>
+                <p class="form-text" th:text="#{form.upload_new_image}">Upload new image to replace it.</p>
+            </div>
+
+            <button class="btn btn-primary" th:text="#{form.save}" type="submit">Save</button>
+            <a class="btn btn-secondary" th:href="@{/strategies}" th:text="#{form.cancel}">Cancel</a>
         </form>
     </div>
 </section>

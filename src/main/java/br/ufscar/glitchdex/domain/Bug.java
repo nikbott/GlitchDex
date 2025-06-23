@@ -7,11 +7,19 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
+@Table(indexes = {
+        @Index(name = "idx_bug_title", columnList = "title"),
+        @Index(name = "idx_bug_status", columnList = "status"),
+        @Index(name = "idx_bug_priority", columnList = "priority"),
+        @Index(name = "idx_bug_severity", columnList = "severity")
+})
 public class Bug {
 
     @Id
@@ -21,14 +29,14 @@ public class Bug {
     @NotBlank
     private String title;
 
-    // This annotation is changed to a searchable VARCHAR
     @Column(length = 2048)
     private String description;
 
     @Column(length = 2048)
     private String stepsToReproduce;
 
-    private String attachmentFilename;
+    @OneToMany(mappedBy = "bug", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<BugAttachment> attachments = new HashSet<>();
 
     private LocalDateTime reportDate;
 
