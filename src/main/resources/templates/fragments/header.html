@@ -24,15 +24,22 @@
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item dropdown">
-                        <a aria-expanded="false" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#"
-                           id="languageDropdown" role="button" th:text="${currentLanguage.name}">
-                            Language
+                        <a aria-expanded="false" class="nav-link dropdown-toggle d-flex align-items-center"
+                           data-bs-toggle="dropdown" href="#"
+                           id="languageDropdown" role="button">
+                            <span class="flag-icon me-2"
+                                  th:classappend="${'flag-icon-' + currentLanguage.countryCode}"></span>
+                            <span th:text="${currentLanguage.name}"></span>
                         </a>
                         <ul aria-labelledby="languageDropdown" class="dropdown-menu">
                             <li th:each="lang : ${languages}">
-                                <a class="dropdown-item"
+                                <a class="dropdown-item d-flex align-items-center"
                                    th:classappend="${lang.code == currentLanguage.code} ? 'active' : ''"
-                                   th:href="@{?lang={code}(code=${lang.code})}" th:text="${lang.name}">Language Name</a>
+                                   th:href="@{?lang={code}(code=${lang.code})}">
+                                    <span class="flag-icon me-2"
+                                          th:classappend="${'flag-icon-' + lang.countryCode}"></span>
+                                    <span th:text="${lang.name}"></span>
+                                </a>
                             </li>
                         </ul>
                     </li>

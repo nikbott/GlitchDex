@@ -8,14 +8,26 @@ import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @ControllerAdvice
 @RequiredArgsConstructor
 public class LanguageControllerAdvice {
+
+    private static final Map<String, String> languageToCountryCode = new HashMap<>();
+
+    static {
+        languageToCountryCode.put("en", "us");
+        languageToCountryCode.put("pt", "br");
+        languageToCountryCode.put("es", "es");
+        languageToCountryCode.put("fr", "fr");
+        languageToCountryCode.put("it", "it");
+        languageToCountryCode.put("de", "de");
+        languageToCountryCode.put("zh", "cn");
+        languageToCountryCode.put("ja", "jp");
+        languageToCountryCode.put("ru", "ru");
+    }
 
     private final MessageSource messageSource;
     private final I18nConfig i18nConfig;
@@ -33,7 +45,8 @@ public class LanguageControllerAdvice {
                     // Create a locale for the specific language code to get its native name
                     Locale nameLocale = new Locale(code);
                     String name = messageSource.getMessage("header.lang." + code, null, code, nameLocale);
-                    return new Language(code, name);
+                    String countryCode = languageToCountryCode.getOrDefault(code, "us");
+                    return new Language(code, name, countryCode);
                 })
                 .sorted(Comparator.comparing(lang -> !lang.getCode().equals(currentLocale.getLanguage())))
                 .collect(Collectors.toList());
@@ -51,6 +64,7 @@ public class LanguageControllerAdvice {
         String finalLangCode = i18nConfig.getLanguages().contains(currentLangCode) ? currentLangCode : "en";
 
         String name = messageSource.getMessage("header.lang." + finalLangCode, null, finalLangCode, new Locale(finalLangCode));
-        return new Language(finalLangCode, name);
+        String countryCode = languageToCountryCode.getOrDefault(finalLangCode, "us");
+        return new Language(finalLangCode, name, countryCode);
     }
 }
