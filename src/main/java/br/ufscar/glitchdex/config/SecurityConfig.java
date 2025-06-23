@@ -42,7 +42,7 @@ public class SecurityConfig {
                         // Publicly accessible paths
                         .requestMatchers(
                                 "/css/**", "/js/**", "/images/**", "/webjars/**",
-                                "/login", "/error", "/", "/home", "/strategies", "/files/**"
+                                "/login", "/error", "/", "/home", "/strategies/**", "/files/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/strategies").permitAll()
                         // All other requests must be authenticated

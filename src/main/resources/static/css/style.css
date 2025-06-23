@@ -1,9 +1,35 @@
 /* Custom CSS for GlitchDex */
 body {
     padding-top: 56px; /* Adjust for fixed navbar */
+    background-color: #f8f9fa; /* Lighter background color */
+    font-family: 'Inter', sans-serif; /* A modern, clean font */
 }
 
 main {
-    padding-top: 1.5rem;
-    padding-bottom: 1.5rem;
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+}
+
+.card {
+    border: none; /* Remove card borders for a cleaner look */
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15); /* Add a subtle box shadow */
+    transition: transform 0.2s; /* Add a subtle hover effect */
+}
+
+.card:hover {
+    transform: translateY(-5px); /* Add a subtle hover effect */
+}
+
+.btn-primary {
+    background-color: #6c63ff;
+    border-color: #6c63ff;
+}
+
+.btn-primary:hover {
+    background-color: #574de2;
+    border-color: #574de2;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f1f3f5;
 }

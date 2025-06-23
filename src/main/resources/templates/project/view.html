@@ -38,39 +38,41 @@
             <h3 th:text="#{project.view.test_sessions}">Test Sessions</h3>
             <a class="btn btn-primary" th:href="@{/projects/{projectId}/sessions/new(projectId=${project.id})}"
                th:text="#{project.view.new_session}">New Test Session</a></div>
-        <table class="table table-hover">
-            <thead>
-            <tr>
-                <th scope="col" th:text="#{project.view.session.id}">ID</th>
-                <th scope="col" th:text="#{form.description}">Description</th>
-                <th scope="col" th:text="#{project.view.session.tester}">Tester</th>
-                <th scope="col" th:text="#{project.view.session.status}">Status</th>
-                <th scope="col" th:text="#{project.view.session.date}">Date</th>
-                <th scope="col" th:text="#{form.actions}">Actions</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="testSession : ${sessions}">
-                <td th:text="${testSession.id}"></td>
-                <td th:text="${testSession.description}"></td>
-                <td th:text="${testSession.testerName}"></td>
-                <td><span class="badge"
-                          th:classappend="${testSession.status?.name() == 'CREATED' ? 'bg-secondary' : (testSession.status?.name() == 'IN_EXECUTION' ? 'bg-primary' : (testSession.status?.name() == 'FINALIZED' ? 'bg-success' : 'bg-warning'))}"
-                          th:text="#{|session.status.${testSession.status}|}"></span></td>
-                <td th:text="${#temporals.format(testSession.createdAt, #messages.msg('datetime.format'))}"></td>
-                <td>
-                    <a class="btn btn-sm btn-info"
-                       th:href="@{/projects/{projectId}/sessions/{id}(projectId=${project.id}, id=${testSession.id})}"
-                       th:text="#{home.view_details}">Details</a>
-                </td>
-            </tr>
-            <tr th:if="${sessions.isEmpty()}">
-                <td class="text-center" colspan="6" th:text="#{project.view.no_sessions}">No test sessions found for
-                    this project.
-                </td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead>
+                <tr>
+                    <th scope="col" th:text="#{project.view.session.id}">ID</th>
+                    <th scope="col" th:text="#{form.description}">Description</th>
+                    <th scope="col" th:text="#{project.view.session.tester}">Tester</th>
+                    <th scope="col" th:text="#{project.view.session.status}">Status</th>
+                    <th scope="col" th:text="#{project.view.session.date}">Date</th>
+                    <th class="text-end" scope="col" th:text="#{form.actions}">Actions</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="testSession : ${sessions}">
+                    <td th:text="${testSession.id}"></td>
+                    <td th:text="${testSession.description}"></td>
+                    <td th:text="${testSession.testerName}"></td>
+                    <td><span class="badge"
+                              th:classappend="${testSession.status?.name() == 'CREATED' ? 'bg-secondary' : (testSession.status?.name() == 'IN_EXECUTION' ? 'bg-primary' : (testSession.status?.name() == 'FINALIZED' ? 'bg-success' : 'bg-warning'))}"
+                              th:text="#{|session.status.${testSession.status}|}"></span></td>
+                    <td th:text="${#temporals.format(testSession.createdAt, #messages.msg('datetime.format'))}"></td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-info"
+                           th:href="@{/projects/{projectId}/sessions/{id}(projectId=${project.id}, id=${testSession.id})}"
+                           th:text="#{home.view_details}">Details</a>
+                    </td>
+                </tr>
+                <tr th:if="${sessions.isEmpty()}">
+                    <td class="text-center" colspan="6" th:text="#{project.view.no_sessions}">No test sessions found for
+                        this project.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
         <a class="btn btn-secondary mt-3" th:href="@{/home}" th:text="#{project.view.back_to_home}">Back to Home</a>
     </div>
 </section>

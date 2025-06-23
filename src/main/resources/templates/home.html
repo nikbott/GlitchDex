@@ -7,8 +7,15 @@
 <body>
 <section>
     <div class="container mt-4">
-        <h2 th:text="#{home.welcome}">Welcome to GlitchDex</h2>
-        <p th:text="#{home.description}">Your platform for managing software testing projects and bug tracking.</p>
+        <div class="p-5 mb-4 bg-light rounded-3">
+            <div class="container-fluid py-5">
+                <h1 class="display-5 fw-bold" th:text="#{home.welcome}">Welcome to GlitchDex</h1>
+                <p class="col-md-8 fs-4" th:text="#{home.description}">Your platform for managing software testing
+                    projects and bug tracking.</p>
+                <a class="btn btn-primary btn-lg" th:href="@{/strategies}" th:text="#{home.manage_strategies}"
+                   type="button">Manage Strategies</a>
+            </div>
+        </div>
 
         <div sec:authorize="isAuthenticated()">
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -54,25 +61,6 @@
                 </div>
             </div>
         </div>
-
-        <div class="col-md-12 my-4 border-top pt-4">
-            <h3 th:text="#{home.more_options}">More Options</h3>
-        </div>
-
-        <div class="row">
-            <div class="col-md-4 mb-4">
-                <div class="card h-100">
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title" th:text="#{home.strategies_title}">Strategies</h5>
-                        <p class="card-text flex-grow-1" th:text="#{home.strategies_description}">Create, view, and
-                            manage testing strategies.</p>
-                        <a class="btn btn-secondary mt-auto" th:href="@{/strategies}"
-                           th:text="#{home.manage_strategies}">Manage Strategies</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
     </div>
 </section>
 </body>

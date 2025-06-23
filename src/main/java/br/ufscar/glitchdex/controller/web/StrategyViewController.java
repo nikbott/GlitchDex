@@ -36,6 +36,14 @@ public class StrategyViewController {
         return "strategy/list";
     }
 
+    @GetMapping("/{id}")
+    public String viewStrategy(@PathVariable Long id, Model model) {
+        log.info("Request to view strategy with id: {}", id);
+        StrategyDTO strategy = strategyService.findById(id);
+        model.addAttribute("strategy", strategy);
+        return "strategy/view";
+    }
+
     @GetMapping("/new")
     @PreAuthorize("hasAuthority('ADMIN')")
     public String showNewForm(Model model) {
