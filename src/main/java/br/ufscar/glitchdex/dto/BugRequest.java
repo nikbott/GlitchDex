@@ -10,6 +10,7 @@ import lombok.Data;
 
 @Data
 public class BugRequest {
+    private Long id;
 
     @NotBlank
     @Size(min = 2, max = 200)

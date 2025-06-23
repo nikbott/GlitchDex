@@ -82,7 +82,6 @@ public class TestSessionViewController {
         model.addAttribute("testSessionRequest", request);
         model.addAttribute("strategies", strategyService.findAll());
         model.addAttribute("project", projectService.findById(projectId));
-        model.addAttribute("isEditMode", true);
         model.addAttribute("sessionId", id);
         return "session/form";
     }
@@ -101,7 +100,6 @@ public class TestSessionViewController {
             log.warn("Validation errors while updating session: {}", result.getAllErrors());
             model.addAttribute("strategies", strategyService.findAll());
             model.addAttribute("project", projectService.findById(projectId));
-            model.addAttribute("isEditMode", true);
             model.addAttribute("sessionId", id);
             return "session/form";
         }

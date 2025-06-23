@@ -2,14 +2,14 @@
 <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title th:text="${isEditMode} ? #{bug.form.edit_title} : #{bug.form.title}">Bug Form</title>
+    <title th:text="${bugRequest.id != null} ? #{bug.form.edit_title} : #{bug.form.title}">Bug Form</title>
 </head>
 <body>
 <section>
     <div class="container mt-4">
-        <h2 th:text="${isEditMode} ? #{bug.form.edit_header} : #{bug.form.header}">Bug Form</h2>
+        <h2 th:text="${bugRequest.id != null} ? #{bug.form.edit_header} : #{bug.form.header}">Bug Form</h2>
         <form enctype="multipart/form-data" method="post"
-              th:action="${isEditMode} ? @{/bugs/{id}/edit(id=${bugId})} : @{/bugs}"
+              th:action="${bugRequest.id != null} ? @{/bugs/{id}/edit(id=${bugId})} : @{/bugs}"
               th:object="${bugRequest}">
             <input th:field="*{testSessionId}" type="hidden"/>
             <div class="mb-3">
@@ -64,7 +64,8 @@
                        type="file"/>
                 <div class="form-text" th:text="#{bug.form.max_files_notice}">You can upload up to 5 files.</div>
             </div>
-            <button class="btn btn-primary" th:text="${isEditMode} ? #{form.save_changes} : #{bug.form.submit}"
+            <button class="btn btn-primary"
+                    th:text="${bugRequest.id != null} ? #{form.save_changes} : #{bug.form.submit}"
                     type="submit">
                 Submit
             </button>

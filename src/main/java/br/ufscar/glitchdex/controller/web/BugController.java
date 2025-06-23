@@ -47,10 +47,9 @@ public class BugController {
         log.info("Request to show new bug form for test session with id: {}", testSessionId);
         BugRequest bugRequest = new BugRequest();
         bugRequest.setTestSessionId(testSessionId);
-        TestSessionDTO session = testSessionService.findById(testSessionId); // Fetch session
+        TestSessionDTO session = testSessionService.findById(testSessionId);
         model.addAttribute("bugRequest", bugRequest);
-        model.addAttribute("isEditMode", false);
-        model.addAttribute("TestSession", session); // Add session to model
+        model.addAttribute("TestSession", session);
         return "bug/form";
     }
 
@@ -68,7 +67,6 @@ public class BugController {
         if (result.hasErrors()) {
             log.warn("Validation errors occurred during bug creation for test session: {}", bugRequest.getTestSessionId());
             TestSessionDTO session = testSessionService.findById(bugRequest.getTestSessionId());
-            model.addAttribute("isEditMode", false);
             model.addAttribute("session", session);
             return "bug/form";
         }
@@ -108,7 +106,6 @@ public class BugController {
         BugRequest bugRequest = bugMapper.toBugRequest(bugDTO);
         model.addAttribute("bugRequest", bugRequest);
         model.addAttribute("bugId", id);
-        model.addAttribute("isEditMode", true);
         model.addAttribute("session", session);
         return "bug/form";
     }
@@ -128,7 +125,6 @@ public class BugController {
             log.warn("Validation errors while updating bug: {}", result.getAllErrors());
             TestSessionDTO session = testSessionService.findById(bugRequest.getTestSessionId());
             model.addAttribute("bugId", id);
-            model.addAttribute("isEditMode", true);
             model.addAttribute("session", session);
             return "bug/form";
         }

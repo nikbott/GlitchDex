@@ -9,6 +9,8 @@ import java.util.List;
 
 @Data
 public class ProjectRequest {
+    private Long id;
+
     @NotBlank(message = "Project name is required.")
     @Size(min = 2, max = 100, message = "Project name must be between 2 and 100 characters.")
     private String name;

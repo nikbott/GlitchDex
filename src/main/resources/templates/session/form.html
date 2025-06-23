@@ -2,14 +2,16 @@
 <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::section})}"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title th:text="${isEditMode} ? #{session.form.edit_title} : #{session.form.title}">Session Form</title>
+    <title th:text="${testSessionRequest.id != null} ? #{session.form.edit_title} : #{session.form.title}">Session
+        Form</title>
 </head>
 <body>
 <section>
     <div class="container mt-4">
-        <h2 th:text="${isEditMode} ? #{session.form.edit_title} : #{session.form.title}">Session Form</h2>
+        <h2 th:text="${testSessionRequest.id != null} ? #{session.form.edit_title} : #{session.form.title}">Session
+            Form</h2>
         <form method="post"
-              th:action="${isEditMode} ? @{/projects/{projectId}/sessions/{id}/edit(projectId=${testSessionRequest.projectId}, id=${sessionId})} : @{/projects/{projectId}/sessions(projectId=${testSessionRequest.projectId})}"
+              th:action="${testSessionRequest.id != null} ? @{/projects/{projectId}/sessions/{id}/edit(projectId=${testSessionRequest.projectId}, id=${sessionId})} : @{/projects/{projectId}/sessions(projectId=${testSessionRequest.projectId})}"
               th:object="${testSessionRequest}">
 
             <div class="mb-3">
@@ -32,7 +34,8 @@
                 </select>
             </div>
 
-            <button class="btn btn-primary" th:text="${isEditMode} ? #{form.save_changes} : #{session.form.create}"
+            <button class="btn btn-primary"
+                    th:text="${testSessionRequest.id != null} ? #{form.save_changes} : #{session.form.create}"
                     type="submit">
                 Submit
             </button>
