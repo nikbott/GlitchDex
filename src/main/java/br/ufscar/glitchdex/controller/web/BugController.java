@@ -47,7 +47,7 @@ public class BugController {
         TestSessionDTO session = testSessionService.findById(testSessionId); // Fetch session
         model.addAttribute("bugRequest", bugRequest);
         model.addAttribute("isEditMode", false);
-        model.addAttribute("session", session); // Add session to model
+        model.addAttribute("TestSession", session); // Add session to model
         return "bug/form";
     }
 
@@ -95,7 +95,7 @@ public class BugController {
         BugDTO bug = bugService.findById(id);
         TestSessionDTO session = testSessionService.findById(bug.getTestSessionId());
         model.addAttribute("bug", bug);
-        model.addAttribute("session", session);
+        model.addAttribute("TestSession", session);
         return "bug/view";
     }
 
