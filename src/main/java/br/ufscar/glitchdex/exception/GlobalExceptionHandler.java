@@ -9,9 +9,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
@@ -28,6 +30,7 @@ public class GlobalExceptionHandler {
     }
 
     private String getMessage(String code) {
+        // Assume default messages are defined in application.properties or messages.properties
         return messageSource.getMessage(code, null, LocaleContextHolder.getLocale());
     }
 
@@ -50,6 +53,50 @@ public class GlobalExceptionHandler {
             return mav;
         }
     }
+
+    // --- New handler for validation errors (@Valid) ---
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Object> handleValidationErrors(MethodArgumentNotValidException ex, HttpServletRequest request) {
+        log.warn("Validation error (MethodArgumentNotValidException) for request {}: {}", request.getRequestURI(), ex.getMessage());
+
+        // Mapeia erros de campo para uma lista mais legível
+        Map<String, String> errors = new LinkedHashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach(error -> {
+            String fieldName = error.getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+
+        // Constrói a resposta JSON para APIs
+        Map<String, Object> body = new LinkedHashMap<>();
+        body.put("timestamp", LocalDateTime.now());
+        body.put("status", HttpStatus.BAD_REQUEST.value());
+        body.put("error", HttpStatus.BAD_REQUEST.getReasonPhrase());
+        body.put("message", "Validation failed for request body.");
+        body.put("details", errors);
+        body.put("path", request.getRequestURI());
+
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    // --- New handler for missing/malformed request body (JSON parsing errors) ---
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public Object handleHttpMessageNotReadableException(HttpMessageNotReadableException ex, HttpServletRequest request) {
+        log.warn("Request body not readable for request {}: {}", request.getRequestURI(), ex.getMessage());
+        String message;
+
+        // Verifica o tipo de erro para fornecer uma mensagem mais precisa
+        if (ex.getMessage() != null && ex.getMessage().contains("Required request body is missing")) {
+            message = getMessage("error.request_body_missing");
+        } else {
+            // Caso seja um JSON malformado
+            message = getMessage("error.invalid_json_format");
+        }
+
+        return buildErrorResponse(request, HttpStatus.BAD_REQUEST, message);
+    }
+
+    // --- Existing handlers ---
 
     @ExceptionHandler({ResourceNotFoundException.class})
     public Object handleResourceNotFoundException(ResourceNotFoundException ex, HttpServletRequest request) {

@@ -10,6 +10,7 @@ import br.ufscar.glitchdex.mapper.BugMapper;
 import br.ufscar.glitchdex.repository.BugRepository;
 import br.ufscar.glitchdex.repository.TestSessionRepository;
 import br.ufscar.glitchdex.repository.UserRepository;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +35,7 @@ public class BugService {
     private final FileStorageService fileStorageService;
     private final MessageSource messageSource;
     private final TestSessionService testSessionService;
+    private final EntityManager entityManager; // Adicionado EntityManager para sincronização
 
     public BugDTO findById(Long id) {
         log.info("Finding bug with id: {}", id);
@@ -42,11 +44,29 @@ public class BugService {
         return bugMapper.toBugDTO(bug);
     }
 
+    @Transactional(readOnly = true)
     public List<BugDTO> findByTestSession(TestSession testSession) {
         log.info("Finding bugs for test session with id: {}", testSession.getId());
         return bugRepository.findByTestSession(testSession).stream()
                 .map(bugMapper::toBugDTO)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Finds bugs associated with a specific Test Session ID.
+     * @param testSessionId The ID of the test session.
+     * @return A list of BugDTOs.
+     */
+    @Transactional(readOnly = true)
+    public List<BugDTO> findByTestSessionId(Long testSessionId) {
+        log.info("Finding bugs for test session with id: {}", testSessionId);
+
+        // Find the TestSession entity using TestSessionRepository
+        TestSession testSession = testSessionRepository.findById(testSessionId)
+                .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.session.not_found", new Object[]{testSessionId}, LocaleContextHolder.getLocale())));
+
+        // Use the existing findByTestSession method with the entity
+        return this.findByTestSession(testSession);
     }
 
     @Transactional
@@ -125,12 +145,28 @@ public class BugService {
         Bug bug = bugRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(messageSource.getMessage("error.bug.not_found", new Object[]{id}, LocaleContextHolder.getLocale())));
 
+        // Remova os anexos primeiro
         for (BugAttachment attachment : bug.getAttachments()) {
             fileStorageService.delete(attachment.getFilename());
         }
 
         Long testSessionId = bug.getTestSession().getId();
+
+        // 1. Obtenha a entidade TestSession relacionada.
+        TestSession testSession = bug.getTestSession();
+
+        // 2. Remova explicitamente o bug da coleção de bugs da TestSession.
+        testSession.getBugs().remove(bug);
+
+        // 3. Forçar a sincronização do EntityManager.
+        // Isso garante que a atualização da entidade TestSession (remoção do bug da coleção)
+        // seja sincronizada no banco de dados e no contexto de persistência antes da exclusão do Bug,
+        // garantindo que a próxima leitura da TestSession esteja correta.
+        entityManager.flush();
+
+        // 4. Delete o Bug do repositório.
         bugRepository.deleteById(id);
+
         log.info("Bug with id {} deleted successfully", id);
         return testSessionId;
     }

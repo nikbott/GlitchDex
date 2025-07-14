@@ -32,15 +32,15 @@ public class TestSessionController {
     private final TestSessionService testSessionService;
 
     /**
-     * Lists all test sessions for a given strategy.
+     * Lists all test sessions for a given project.
      *
-     * @param strategyId The ID of the strategy.
+     * @param projectId The ID of the project.
      * @return A list of TestSessionDTOs.
      */
     @GetMapping
-    public List<TestSessionDTO> listSessions(@RequestParam Long strategyId) {
-        log.info("Request to list all sessions for strategyId: {}", strategyId);
-        return testSessionService.findByStrategyId(strategyId);
+    public List<TestSessionDTO> listSessions(@RequestParam Long projectId) {
+        log.info("Request to list all sessions for projectId: {}", projectId);
+        return testSessionService.findByProjectId(projectId);
     }
 
     /**

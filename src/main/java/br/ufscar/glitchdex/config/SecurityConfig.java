@@ -14,6 +14,11 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.SecurityFilterChain;
 
+// Import necessário para usar withDefaults()
+import static org.springframework.security.config.Customizer.withDefaults;
+// Import necessário para a configuração do CSRF
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+
 
 /**
  * Configures the security settings for the application, including authentication, authorization,
@@ -38,6 +43,8 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // Desabilita CSRF apenas para o caminho /api/**
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"))
                 .authorizeHttpRequests(authorize -> authorize
                         // Publicly accessible paths
                         .requestMatchers(
@@ -48,6 +55,8 @@ public class SecurityConfig {
                         // All other requests must be authenticated
                         .anyRequest().authenticated()
                 )
+                // Adicionando explicitamente o suporte a HTTP Basic para a API
+                .httpBasic(withDefaults())
                 .formLogin(form -> form
                         .loginPage("/login")
                         .successHandler((request, response, authentication) -> {

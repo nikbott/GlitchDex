@@ -9,6 +9,7 @@ import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+// Importação alterada de volta para CookieLocaleResolver
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
 
@@ -24,8 +25,12 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Bean
     public LocaleResolver localeResolver() {
+        // Restaurado para CookieLocaleResolver para permitir a mudança de idioma via URL (LocaleChangeInterceptor) na interface web
         CookieLocaleResolver clr = new CookieLocaleResolver("GLITCHDEX_LOCALE");
+
+        // Define o locale padrão para o site (você tinha Locale.US no original, vou usar Locale.US aqui)
         clr.setDefaultLocale(Locale.US);
+
         return clr;
     }
 
@@ -38,6 +43,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        // Registra o interceptor para permitir a mudança de locale via parâmetro 'lang'
         registry.addInterceptor(localeChangeInterceptor());
     }
 
