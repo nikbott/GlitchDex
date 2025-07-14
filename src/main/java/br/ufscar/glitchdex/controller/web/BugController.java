@@ -149,11 +149,23 @@ public class BugController {
     @PreAuthorize(Constants.HAS_ANY_AUTHORITY_ADMIN_TESTER)
     public String deleteBug(@PathVariable Long id, RedirectAttributes redirectAttributes) {
         log.info("Request to delete bug with id: {}", id);
-        Long testSessionId = bugService.delete(id);
+
+        // 1. Obtenha o BugDTO para encontrar o testSessionId e o TestSessionDTO para obter o projectId ANTES da exclusão.
+        // Isso garante que temos os IDs para redirecionamento e evita buscar um DTO possivelmente desatualizado após a exclusão.
+        BugDTO bugToDelete = bugService.findById(id);
+        Long testSessionId = bugToDelete.getTestSessionId();
         TestSessionDTO session = testSessionService.findById(testSessionId);
+        Long projectId = session.getProjectId();
+
+        // 2. Realize a exclusão do bug.
+        bugService.delete(id);
+
+        // 3. Adiciona a mensagem de sucesso e redireciona.
         redirectAttributes.addFlashAttribute("successMessage", messageSource.getMessage("bug.form.success.delete", null, LocaleContextHolder.getLocale()));
         log.info("Bug with id: {} deleted successfully", id);
-        return "redirect:/projects/" + session.getProjectId() + "/sessions/" + testSessionId;
+
+        // 4. Redireciona para a página da sessão usando os IDs obtidos antes da exclusão.
+        return "redirect:/projects/" + projectId + "/sessions/" + testSessionId;
     }
 
     private void validateAttachments(MultipartFile[] attachments, BindingResult result) {
